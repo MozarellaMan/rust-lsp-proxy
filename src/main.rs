@@ -4,9 +4,7 @@ use std::net::TcpListener;
 use structopt::StructOpt;
 
 fn get_tcp_listener(port: i32) -> TcpListener {
-    let listener =
-        TcpListener::bind(format!("127.0.0.1:{}", port)).expect("failed to bind port to {}");
-    listener
+    TcpListener::bind(format!("127.0.0.1:{}", port)).expect("failed to bind port to {}")
 }
 
 #[actix_web::main]
