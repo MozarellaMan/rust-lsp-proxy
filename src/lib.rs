@@ -6,14 +6,24 @@ use structopt::StructOpt;
 
 pub mod config;
 
+// pub fn test_config() -> Option<LSArgs> {}
+
 async fn health_check() -> impl Responder {
     HttpResponse::Ok()
 }
 
 pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
     println!("{:?}", LSArgs::from_args());
-    let server = HttpServer::new(|| App::new().route("/health", web::get().to(health_check)))
-        .listen(listener)?
-        .run();
+    let server = HttpServer::new(|| {
+        App::new()
+            .service(
+                web::scope("/code")
+                    .route("/file/{dir}", web::get().to(health_check))
+                    .route("/directory", web::get().to(health_check)),
+            )
+            .route("/health", web::get().to(health_check))
+    })
+    .listen(listener)?
+    .run();
     Ok(server)
 }
