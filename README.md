@@ -1,6 +1,6 @@
 # Language Server Proxy
 
-This program will act as an easy-to-use, remote middleman between any Language Server Protocol compliant client you have to a language server running on your local machine.
+This program will act as an easy-to-use, remote middleman between any Language Server Protocol compliant client you have to a language server running on your local machine. Working title.
 
 ## How to Test
 
