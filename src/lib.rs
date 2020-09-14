@@ -13,6 +13,10 @@ async fn health_check() -> impl Responder {
     HttpResponse::Ok()
 }
 
+pub fn get_ls_args() -> LSArgs {
+    LSArgs::from_args()
+}
+
 pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
     println!("Program config: {:?}", LSArgs::from_args());
     std::env::set_var("RUST_LOG", "actix_web=info");

@@ -1,17 +1,15 @@
-use std::fs;
-
-use reqwest::StatusCode;
-
 mod test_helper;
 
-const TEST_FILE: &str = "tests/example_code_repos/test-java-repo/src/Hello.java";
+use reqwest::StatusCode;
+use std::fs;
+use test_helper::{COMMON_TEST_DIRECTORY, COMMON_TEST_LANG, _COMMON_TEST_FILE};
 
 #[actix_rt::test]
 async fn file_endpoint_responds_with_existing_file() {
     // Arrange
-    let address = test_helper::spawn_app();
+    let address = test_helper::spawn_app(COMMON_TEST_DIRECTORY, COMMON_TEST_LANG);
     let client = reqwest::Client::new();
-    let actual_file = fs::read_to_string(TEST_FILE).ok();
+    let actual_file = fs::read_to_string(_COMMON_TEST_FILE).ok();
     let input_path = "src/Hello.java";
 
     let response = client
