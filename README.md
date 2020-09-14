@@ -2,7 +2,7 @@
 
 This program will act as an easy-to-use, remote middleman between any Language Server Protocol compliant client you have to a language server running on your local machine. Working title.
 
-Made primarily with Rust, Actix-Web
+Made primarily with Rust, Actix-Web. Aiming for this project to be small in scope and simple.
 
 ## How to Test
 
