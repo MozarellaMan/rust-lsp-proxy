@@ -4,6 +4,7 @@ use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use std::net::TcpListener;
 use structopt::StructOpt;
 
+pub mod code;
 pub mod config;
 
 // pub fn test_config() -> Option<LSArgs> {}
@@ -18,7 +19,7 @@ pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
         App::new()
             .service(
                 web::scope("/code")
-                    .route("/file/{dir}", web::get().to(health_check))
+                    .route("/file/{filename:.*}", web::get().to(code::get_file))
                     .route("/directory", web::get().to(health_check)),
             )
             .route("/health", web::get().to(health_check))

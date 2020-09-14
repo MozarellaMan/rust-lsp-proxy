@@ -16,6 +16,8 @@ name = "app"
 actix-web = "3"
 structopt = "0.3.17"
 clap = "2.33.3"
+actix-files = "0.3.0"
+mime = "0.3.16"
 
 [dev-dependencies]
 actix-rt = "1"
