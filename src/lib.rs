@@ -1,5 +1,5 @@
 use crate::config::LSArgs;
-use actix_web::dev::Server;
+use actix_web::{dev::Server, middleware::Logger};
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use std::net::TcpListener;
 use structopt::StructOpt;
@@ -14,9 +14,12 @@ async fn health_check() -> impl Responder {
 }
 
 pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
-    println!("{:?}", LSArgs::from_args());
+    println!("Program config: {:?}", LSArgs::from_args());
+    std::env::set_var("RUST_LOG", "actix_web=info");
+    env_logger::init();
     let server = HttpServer::new(|| {
         App::new()
+            .wrap(Logger::default())
             .service(
                 web::scope("/code")
                     .route("/file/{filename:.*}", web::get().to(code::get_file))
