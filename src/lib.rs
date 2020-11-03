@@ -6,6 +6,7 @@ use structopt::StructOpt;
 
 pub mod code;
 pub mod config;
+pub mod lang_server;
 
 // pub fn test_config() -> Option<LSArgs> {}
 
