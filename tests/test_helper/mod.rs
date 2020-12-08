@@ -2,7 +2,7 @@ use std::{env, net::TcpListener};
 
 use lsp_proxy::config::{LSArgs, Lang};
 
-pub const COMMON_TEST_DIRECTORY: &str = "./tests/example_code_repos/test-java-repo";
+pub const _COMMON_TEST_DIRECTORY: &str = "./tests/example_code_repos/test-java-repo";
 pub const _COMMON_TEST_FILE: &str = "tests/example_code_repos/test-java-repo/src/Hello.java";
 pub const COMMON_TEST_LANG: Lang = lsp_proxy::config::Lang::Java;
 
@@ -25,7 +25,7 @@ pub fn spawn_app(codebase_path: &str, language: Lang) -> String {
     setup_program_args(&args);
 
     println!("test port: {}", port);
-    let server = lsp_proxy::run(listener).expect("failed to bind address");
+    let server = lsp_proxy::test_run(listener).expect("failed to bind address");
     let _ = tokio::spawn(server);
 
     format!("http://127.0.0.1:{}", port)

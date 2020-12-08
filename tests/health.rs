@@ -1,11 +1,11 @@
 mod test_helper;
 
-use test_helper::{COMMON_TEST_DIRECTORY, COMMON_TEST_LANG};
+use test_helper::{_COMMON_TEST_DIRECTORY, COMMON_TEST_LANG};
 
 #[actix_rt::test]
 async fn health_check_works() {
     // Arrange
-    let address = test_helper::spawn_app(COMMON_TEST_DIRECTORY, COMMON_TEST_LANG);
+    let address = test_helper::spawn_app(_COMMON_TEST_DIRECTORY, COMMON_TEST_LANG);
     let client = reqwest::Client::new();
 
     // Act

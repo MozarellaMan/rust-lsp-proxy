@@ -1,6 +1,6 @@
-use lsp_proxy::config::LSArgs;
+use lsp_proxy::{config::{LSArgs, Lang}, lang_server::start_lang_server};
 use lsp_proxy::run;
-use std::{net::TcpListener, path::Path};
+use std::{net::TcpListener, path::Path, sync::Arc};
 use structopt::StructOpt;
 
 fn get_tcp_listener(port: i32) -> TcpListener {
@@ -13,6 +13,7 @@ async fn main() -> std::io::Result<()> {
     if !Path::new(&args.codebase_path).exists() {
         panic!("Directory does not exist!")
     }
+    let child  = start_lang_server(Lang::Java, args.codebase_path).unwrap();
     println!("Listening on {} ... 🚀", args.port);
-    run(get_tcp_listener(args.port))?.await
+    run(get_tcp_listener(args.port), Arc::new(std::sync::Mutex::new(child)))?.await
 }

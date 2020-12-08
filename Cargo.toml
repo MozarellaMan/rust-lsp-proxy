@@ -16,9 +16,12 @@ name = "app"
 actix-web = "3"
 structopt = "0.3.17"
 clap = "2.33.3"
-actix-files = "0.3.0"
+actix-files = "0.4.1"
 mime = "0.3.16"
-env_logger = "0.7.1"
+env_logger = "0.8.2"
+tokio = { version = "0.2.22", features = ["process", "rt-core", "fs"] }
+actix = "0.10.0"
+actix-web-actors = "3.0.0"
 
 [dev-dependencies]
 actix-rt = "1"
