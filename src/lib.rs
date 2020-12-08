@@ -2,9 +2,9 @@ use crate::config::LSArgs;
 use actix_web::{dev::Server, middleware::Logger};
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use lang_server::to_lsp;
-use tokio::{process::Child};
 use std::{net::TcpListener, sync::Arc};
 use structopt::StructOpt;
+use tokio::process::Child;
 
 pub mod code;
 pub mod config;
@@ -20,8 +20,10 @@ pub fn get_ls_args() -> LSArgs {
     LSArgs::from_args()
 }
 
-
-pub fn run(listener: TcpListener, child: Arc<std::sync::Mutex<Child>>) -> Result<Server, std::io::Error> {
+pub fn run(
+    listener: TcpListener,
+    child: Arc<std::sync::Mutex<Child>>,
+) -> Result<Server, std::io::Error> {
     println!("Program config: {:?}", LSArgs::from_args());
     std::env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
@@ -46,7 +48,7 @@ pub fn test_run(listener: TcpListener) -> Result<Server, std::io::Error> {
     println!("Program config: {:?}", LSArgs::from_args());
     std::env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
-    let server = HttpServer::new( || {
+    let server = HttpServer::new(|| {
         App::new()
             .wrap(Logger::default())
             .service(

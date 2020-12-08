@@ -1,6 +1,6 @@
 mod test_helper;
 
-use test_helper::{_COMMON_TEST_DIRECTORY, COMMON_TEST_LANG};
+use test_helper::{COMMON_TEST_LANG, _COMMON_TEST_DIRECTORY};
 
 #[actix_rt::test]
 async fn health_check_works() {

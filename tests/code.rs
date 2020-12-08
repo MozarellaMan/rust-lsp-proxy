@@ -2,7 +2,7 @@ mod test_helper;
 
 use reqwest::StatusCode;
 use std::fs;
-use test_helper::{_COMMON_TEST_DIRECTORY, COMMON_TEST_LANG, _COMMON_TEST_FILE};
+use test_helper::{COMMON_TEST_LANG, _COMMON_TEST_DIRECTORY, _COMMON_TEST_FILE};
 
 #[actix_rt::test]
 async fn file_endpoint_responds_with_existing_file() {
