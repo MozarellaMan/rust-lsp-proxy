@@ -1,11 +1,12 @@
-use std::{process::Stdio, sync::Arc};
+use std::{cell::Cell, process::Stdio, sync::Arc};
 
 use actix::{Actor, AsyncContext, StreamHandler};
 use actix_web::{web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
 use tokio::{
-    io::AsyncWriteExt,
-    process::{Child, ChildStdin, Command},
+    io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
+    process::{Child, ChildStdin, ChildStdout, Command},
+    stream::StreamExt,
     sync::Mutex,
 };
 
@@ -15,19 +16,41 @@ const TEST_JAVA_SERVER_PATH: &str = "/home/ayomide/Development/LanguageServers/J
 
 struct LangServer {
     stdin: Arc<Mutex<ChildStdin>>,
+    stdout: Cell<ChildStdout>,
 }
+#[derive(Debug)]
+struct Line(String);
 
 impl LangServer {
     pub fn new(child: Arc<std::sync::Mutex<Child>>) -> Self {
         let mut child = child.lock().unwrap();
         LangServer {
             stdin: Arc::new(Mutex::new(child.stdin.take().unwrap())),
+            stdout: Cell::new(child.stdout.take().unwrap()),
+        }
+    }
+}
+
+impl StreamHandler<Result<Line, ws::ProtocolError>> for LangServer {
+    fn handle(&mut self, msg: Result<Line, ws::ProtocolError>, ctx: &mut Self::Context) {
+        match msg {
+            Ok(line) => ctx.text(line.0),
+            _ => (), //Handle errors
         }
     }
 }
 
 impl Actor for LangServer {
     type Context = ws::WebsocketContext<Self>;
+
+    fn started(&mut self, ctx: &mut Self::Context) {
+        /* Send the bytes received from stdout to ctx */
+        unsafe {
+            let stdout = &mut *self.stdout.as_ptr();
+            let reader = BufReader::new(stdout).lines();
+            ctx.add_stream(reader.map(|l| Ok(Line(l.expect("Not a line")))));
+        }
+    }
 }
 
 /// Handler for ws::Message message
@@ -49,7 +72,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for LangServer {
                     stdin.flush();
                 };
 
-                let fut = actix::fut::wrap_future::<_, Self>(fut);
+                let fut = actix::fut::wrap_future(fut);
                 ctx.spawn(fut);
             }
             Ok(ws::Message::Binary(bin)) => ctx.binary(bin),
@@ -83,6 +106,7 @@ pub fn start_lang_server(lang: Lang, _file_path: String) -> Option<Child> {
                 .arg("--add-opens")
                 .arg("java.base/java.lang=ALL-UNNAMED")
                 .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
                 .spawn()
                 .expect("failed to execute"))
         },
