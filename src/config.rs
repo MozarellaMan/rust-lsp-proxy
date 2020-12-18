@@ -7,7 +7,7 @@ pub struct LSArgs {
     #[structopt(
         short,
         long,
-        default_value = "./tests/example_code_repos/test-java-repo/",
+        default_value = "/home/ayomide/Development/LanguageServers/lsp-proxies/rust/actix-lsp-proxy/tests/example_code_repos/test-java-repo",
         env
     )]
     pub codebase_path: String,

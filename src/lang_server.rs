@@ -82,7 +82,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for LangServer {
     }
 }
 
-pub fn start_lang_server(lang: Lang, _file_path: String) -> Option<Child> {
+pub fn start_lang_server(lang: Lang, file_path: String) -> Option<Child> {
     match lang {
         Lang::Java => {
                Some(Command::new("java")
@@ -99,7 +99,7 @@ pub fn start_lang_server(lang: Lang, _file_path: String) -> Option<Child> {
                 .arg("-configuration")
                 .arg("./config_linux")
                 .arg("-data")
-                .arg("/home/ayomide/Development/LanguageServers/lsp-proxies/rust/actix-lsp-proxy/tests/example_code_repos/test-java-repo")
+                .arg(file_path)
                 .arg("--add-modules=ALL-SYSTEM")
                 .arg("--add-opens")
                 .arg("java.base/java.util=ALL-UNNAMED")
