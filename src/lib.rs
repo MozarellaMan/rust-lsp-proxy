@@ -9,6 +9,7 @@ use tokio::process::Child;
 pub mod code;
 pub mod config;
 pub mod lang_server;
+pub mod files;
 
 // pub fn test_config() -> Option<LSArgs> {}
 
@@ -33,7 +34,7 @@ pub fn run(
             .service(
                 web::scope("/code")
                     .route("/file/{filename:.*}", web::get().to(code::get_file))
-                    .route("/directory", web::get().to(health_check)),
+                    .route("/directory", web::get().to(files::get_dir)),
             )
             .route("/health", web::get().to(health_check))
             .data(child.clone())
@@ -54,7 +55,7 @@ pub fn test_run(listener: TcpListener) -> Result<Server, std::io::Error> {
             .service(
                 web::scope("/code")
                     .route("/file/{filename:.*}", web::get().to(code::get_file))
-                    .route("/directory", web::get().to(health_check)),
+                    .route("/directory", web::get().to(files::get_dir)),
             )
             .route("/health", web::get().to(health_check))
     })
