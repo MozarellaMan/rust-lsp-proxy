@@ -8,8 +8,8 @@ use tokio::process::Child;
 
 pub mod code;
 pub mod config;
-pub mod lang_server;
 pub mod files;
+pub mod lang_server;
 
 // pub fn test_config() -> Option<LSArgs> {}
 

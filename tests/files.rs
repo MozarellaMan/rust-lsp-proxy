@@ -11,15 +11,15 @@ async fn directory_tree_json() {
     let address = test_helper::spawn_app(_COMMON_TEST_DIRECTORY, COMMON_TEST_LANG);
     let client = reqwest::Client::new();
     let expected = json!({
-        "path": "",
+        "path": _COMMON_TEST_DIRECTORY,
         "name": "test-java-repo",
         "type": "directory",
         "children": [{
-            "path": "src",
+            "path": format!("{}/src", _COMMON_TEST_DIRECTORY),
             "name": "src",
             "type": "directory",
             "children": [{
-                "path": "src/Hello.java",
+                "path": format!("{}/src/Hello.java", _COMMON_TEST_DIRECTORY),
                 "name": "Hello.java",
                 "type": "java",
                 "children": [],

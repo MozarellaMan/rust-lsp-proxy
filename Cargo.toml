@@ -23,10 +23,12 @@ tokio = { version = "0.2.22", features = ["process", "rt-core", "fs"] }
 actix = "0.10.0"
 actix-web-actors = "3.0.0"
 serde_json = "1.0.60"
+serde = { version = "1.0", features = ["derive"] }
+walkdir = "2"
 
 [dev-dependencies]
 actix-rt = "1"
-reqwest =  { version = "0.10.10", features = ["json"] }
+reqwest = { version = "0.10.10", features = ["json"] }
 tokio = "0.2.22"
 websocket = "0.26.2"
 claim = "0.4.0"
