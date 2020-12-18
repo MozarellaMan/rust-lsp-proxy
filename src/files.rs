@@ -1,4 +1,4 @@
-use actix_web::{HttpResponse, Responder, web::Json};
+use actix_web::web::Json;
 use serde::{Deserialize, Serialize};
 use walkdir::{DirEntry, WalkDir};
 
@@ -19,8 +19,18 @@ impl FileNode {
         FileNode {
             path: entry.path().display().to_string(),
             name: String::from(entry.file_name().to_str().unwrap()),
-            file_type: if entry.file_type().is_dir() { "directory".to_owned() }  else { entry.path().extension().unwrap().to_str().unwrap().to_owned() },
-            children: Vec::<Box<FileNode>>::new()
+            file_type: if entry.file_type().is_dir() {
+                "directory".to_owned()
+            } else {
+                entry
+                    .path()
+                    .extension()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .to_owned()
+            },
+            children: Vec::<Box<FileNode>>::new(),
         }
     }
 
@@ -61,7 +71,6 @@ fn build_file_tree(node: &mut FileNode, parts: &Vec<DirEntry>, depth: usize) {
     }
 }
 
-
 fn is_ignored(entry: &DirEntry) -> bool {
     entry
         .file_name()
@@ -81,7 +90,7 @@ pub async fn get_dir() -> Result<Json<FileNode>, std::io::Error> {
     }
 
     let mut top = FileNode::new(paths.get(0).unwrap());
-    for path in paths.iter() {
+    for _path in paths.iter() {
         build_file_tree(&mut top, &paths, 1);
     }
 

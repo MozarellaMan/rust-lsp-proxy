@@ -84,8 +84,8 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for LangServer {
 
 pub fn start_lang_server(lang: Lang, file_path: String) -> Option<Child> {
     match lang {
-        Lang::Java => {
-               Some(Command::new("java")
+        Lang::Java => Some(
+            Command::new("java")
                 .current_dir(TEST_JAVA_SERVER_PATH)
                 .arg("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=1044")
                 .arg("-Declipse.application=org.eclipse.jdt.ls.core.id1")
@@ -108,9 +108,9 @@ pub fn start_lang_server(lang: Lang, file_path: String) -> Option<Child> {
                 .stdin(Stdio::piped())
                 .stdout(Stdio::piped())
                 .spawn()
-                .expect("failed to execute"))
-        },
-        Lang::C => None
+                .expect("failed to execute"),
+        ),
+        Lang::C => None,
     }
 }
 

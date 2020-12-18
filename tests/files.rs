@@ -2,7 +2,7 @@ mod test_helper;
 
 use assert_json_diff::assert_json_eq;
 use reqwest::StatusCode;
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 use test_helper::{COMMON_TEST_LANG, _COMMON_TEST_DIRECTORY};
 
 #[actix_rt::test]
