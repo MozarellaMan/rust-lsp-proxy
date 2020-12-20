@@ -10,7 +10,7 @@ pub mod code;
 pub mod config;
 pub mod files;
 pub mod lang_server;
-pub mod file_sync_err;
+pub mod file_sync;
 
 // pub fn test_config() -> Option<LSArgs> {}
 
