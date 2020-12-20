@@ -45,7 +45,7 @@ pub async fn update_file(
         FileSyncType::Update => {
             let mut options = OpenOptions::new();
             let mut file = options
-                .read(true)
+                .write(true)
                 .truncate(true)
                 .open(path)
                 .await
