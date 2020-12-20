@@ -10,6 +10,7 @@ pub mod code;
 pub mod config;
 pub mod files;
 pub mod lang_server;
+pub mod file_sync_err;
 
 // pub fn test_config() -> Option<LSArgs> {}
 
@@ -34,6 +35,7 @@ pub fn run(
             .service(
                 web::scope("/code")
                     .route("/file/{filename:.*}", web::get().to(code::get_file))
+                    .route("/file/{filename:.*}", web::post().to(code::update_file))
                     .route("/directory", web::get().to(files::get_dir)),
             )
             .route("/health", web::get().to(health_check))
@@ -55,6 +57,7 @@ pub fn test_run(listener: TcpListener) -> Result<Server, std::io::Error> {
             .service(
                 web::scope("/code")
                     .route("/file/{filename:.*}", web::get().to(code::get_file))
+                    .route("/file/{filename:.*}", web::post().to(code::update_file))
                     .route("/directory", web::get().to(files::get_dir)),
             )
             .route("/health", web::get().to(health_check))
