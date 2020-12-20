@@ -8,9 +8,9 @@ use tokio::process::Child;
 
 pub mod code;
 pub mod config;
+pub mod file_sync;
 pub mod files;
 pub mod lang_server;
-pub mod file_sync;
 
 // pub fn test_config() -> Option<LSArgs> {}
 
