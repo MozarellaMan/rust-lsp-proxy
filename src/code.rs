@@ -53,10 +53,10 @@ pub async fn update_file(
             file.write_all(update.text.as_bytes())
                 .await
                 .map_err(map_io_err)?;
-            Ok(HttpResponse::Ok().body("Sync Succesful"))
+            Ok(HttpResponse::Ok().body("Sync Successful"))
         }
         FileSyncType::Delete => Err(FileSyncError::InternalError {
-            cause: "not implemented.".to_string(),
+            cause: "File deletion not implemented.".to_string(),
         }),
     }
 }

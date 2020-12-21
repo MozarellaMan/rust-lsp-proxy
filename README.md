@@ -6,7 +6,8 @@ Made primarily with Rust, Actix-Web. Aiming for this project to be small in scop
 
 ## How to Test
 
-[ to be written ]
+- You'll need [cargo](https://crates.io/)
+- Run `cargo test` in a terminal
 
 ## Missing Features
 
