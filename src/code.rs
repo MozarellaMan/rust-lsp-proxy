@@ -32,14 +32,14 @@ pub async fn update_file(
 
     match update.reason {
         FileSyncType::New => {
-            if !path.is_dir() {
-                Err(FileSyncError::BadClientData {
-                    cause: "Cannot create new file in non-directory.".to_string(),
-                })
-            } else {
+            if path.is_dir() {
                 let path = path.join(&update.name);
                 let _file = tokio::fs::File::create(&path).await.map_err(map_io_err)?;
                 Ok(HttpResponse::Ok().body(&path.display().to_string()))
+            } else {
+                Err(FileSyncError::BadClientData {
+                    cause: "Cannot create new file in non-directory.".to_string(),
+                })
             }
         }
         FileSyncType::Update => {
@@ -53,7 +53,7 @@ pub async fn update_file(
             file.write_all(update.text.as_bytes())
                 .await
                 .map_err(map_io_err)?;
-            Ok(HttpResponse::Ok().body("Synced."))
+            Ok(HttpResponse::Ok().body("Sync Succesful"))
         }
         FileSyncType::Delete => Err(FileSyncError::InternalError {
             cause: "not implemented.".to_string(),

@@ -17,16 +17,16 @@ pub struct FileSyncMsg {
 
 #[derive(Debug, Display, Error)]
 pub enum FileSyncError {
-    #[display(fmt = "internal error {}", cause)]
+    #[display(fmt = "Sync unsucessful: internal error {}", cause)]
     InternalError { cause: String },
 
-    #[display(fmt = "bad request {}", cause)]
+    #[display(fmt = "Sync unsucessful: {}", cause)]
     BadClientData { cause: String },
 
-    #[display(fmt = "timeout")]
+    #[display(fmt = "Sync unsucessful: timeout")]
     Timeout,
 
-    #[display(fmt = "file not found")]
+    #[display(fmt = "Sync unsucessful: file not found")]
     NotFound,
 }
 
