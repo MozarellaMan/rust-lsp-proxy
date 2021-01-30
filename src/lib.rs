@@ -1,7 +1,7 @@
 use crate::config::LSArgs;
 use actix_web::{dev::Server, middleware::Logger, web::Data};
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
-use lang_server::{make_init_req, to_lsp};
+use lang_server::to_lsp;
 use std::{
     net::TcpListener,
     sync::{atomic::AtomicBool, Arc},
@@ -54,7 +54,6 @@ pub fn run(
             .route("/health", web::get().to(health_check))
             .data(child.clone())
             .route("/ls", web::route().to(to_lsp))
-            .route("/ls/init", web::get().to(make_init_req))
     })
     .listen(listener)?
     .run();

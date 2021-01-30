@@ -1,13 +1,11 @@
+use actix::{Actor, AsyncContext, StreamHandler};
+use actix_web::{error::ErrorBadRequest, web, Error, HttpRequest, HttpResponse};
+use actix_web_actors::ws;
 use std::{
     cell::Cell,
     process::Stdio,
     sync::{atomic::Ordering, Arc},
 };
-
-use actix::{Actor, AsyncContext, StreamHandler};
-use actix_web::{error::ErrorBadRequest, web, Error, HttpRequest, HttpResponse};
-use actix_web_actors::ws;
-use serde_json::json;
 use tokio::{
     io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
     process::{Child, ChildStdin, ChildStdout, Command},
@@ -142,25 +140,4 @@ pub async fn to_lsp(
             "Language server web socket session already started.",
         ))
     }
-}
-
-pub async fn make_init_req() -> HttpResponse {
-    let dir =  "/home/ayomide/Development/LanguageServers/lsp-proxies/rust/actix-lsp-proxy/tests/example_code_repos/test-java-repo";
-    let msg = json!({
-        "path": dir,
-        "name": "test-java-repo",
-        "type": "directory",
-        "children": [{
-            "path": format!("{}/src", dir),
-            "name": "src",
-            "type": "directory",
-            "children": [{
-                "path": format!("{}/src/Hello.java", dir),
-                "name": "Hello.java",
-                "type": "java",
-                "children": [],
-            }],
-        }]
-    });
-    HttpResponse::Ok().json(msg)
 }
