@@ -1,12 +1,62 @@
 use actix_files::NamedFile;
 use actix_web::{http::ContentEncoding, web, HttpRequest, HttpResponse, Result};
 use std::path::{Path, PathBuf};
-use tokio::{fs::OpenOptions, io::AsyncWriteExt};
+use tokio::{fs::OpenOptions, io::AsyncWriteExt, process::Command};
 
 use crate::{
+    config,
     file_sync::{map_io_err, FileSyncError, FileSyncMsg, FileSyncType},
-    get_ls_args,
+    get_ls_args, AppState,
 };
+
+pub async fn run_file(
+    req: HttpRequest,
+    state: web::Data<AppState>,
+) -> Result<HttpResponse, FileSyncError> {
+    let path: PathBuf =
+        req.match_info()
+            .query("filename")
+            .parse()
+            .map_err(|_| FileSyncError::InternalError {
+                cause: "Error parsing request URL".to_string(),
+            })?;
+    let file_path = Path::new(&get_ls_args().codebase_path).join(path.clone());
+    if !file_path.exists() {
+        return Ok(HttpResponse::NotFound().body("Nothing to execute."));
+    }
+
+    if let config::Lang::Java = &state.lang {
+        let compiler = Command::new("javac")
+            .current_dir(&state.workspace_dir)
+            .arg(&file_path)
+            .output();
+
+        let comp_output = compiler.await.map_err(|_| FileSyncError::InternalError {
+            cause: "failed to run user code".to_string(),
+        })?;
+
+        let runner = Command::new("java")
+            .current_dir(&state.workspace_dir)
+            .arg(path)
+            .output();
+
+        let exec_output = runner.await.map_err(|_| FileSyncError::InternalError {
+            cause: "failed to compile user code".to_string(),
+        })?;
+
+        let output: Vec<u8> = comp_output
+            .stderr
+            .into_iter()
+            .chain(comp_output.stdout.into_iter())
+            .chain(exec_output.stderr.into_iter())
+            .chain(exec_output.stdout.into_iter())
+            .collect();
+
+        return Ok(HttpResponse::Ok().body(output));
+    }
+
+    Ok(HttpResponse::NotFound().body("Nothing to execute."))
+}
 
 pub async fn get_file(req: HttpRequest) -> Result<NamedFile> {
     let path: PathBuf = req.match_info().query("filename").parse()?;
@@ -29,7 +79,6 @@ pub async fn update_file(
                 cause: "Error parsing request URL".to_string(),
             })?;
     let path = Path::new(&get_ls_args().codebase_path).join(path);
-
     match update.reason {
         FileSyncType::New => {
             if path.is_dir() {

@@ -2,13 +2,13 @@ use actix_web::{dev::HttpResponseBuilder, error, http::header, http::StatusCode,
 use derive_more::{Display, Error};
 use serde::Deserialize;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub enum FileSyncType {
     New,
     Update,
     Delete,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct FileSyncMsg {
     pub reason: FileSyncType,
     pub name: String,

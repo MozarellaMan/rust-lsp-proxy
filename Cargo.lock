@@ -1341,6 +1341,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "lsp-types"
+version = "0.86.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f2a5c40d566f2704dac30859bca152217583fc94fd5b178d8baba915e1abd382"
+dependencies = [
+ "base64 0.12.3",
+ "bitflags",
+ "serde",
+ "serde_json",
+ "serde_repr",
+ "url 2.2.0",
+]
+
+[[package]]
 name = "lsp_proxy"
 version = "0.1.0"
 dependencies = [
@@ -1354,6 +1368,7 @@ dependencies = [
  "clap",
  "derive_more",
  "env_logger",
+ "lsp-types",
  "mime 0.3.16",
  "reqwest",
  "serde",
@@ -2143,6 +2158,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_repr"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2dc6b7951b17b051f3210b063f12cc17320e2fe30ae05b0fe2a3abb068551c76"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "serde_urlencoded"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2762,6 +2788,7 @@ dependencies = [
  "idna 0.2.0",
  "matches",
  "percent-encoding 2.1.0",
+ "serde",
 ]
 
 [[package]]

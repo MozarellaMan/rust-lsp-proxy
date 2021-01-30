@@ -1,9 +1,14 @@
-use lsp_proxy::run;
+use actix_web::web;
 use lsp_proxy::{
     config::{LSArgs, Lang},
     lang_server::start_lang_server,
 };
-use std::{net::TcpListener, path::Path, sync::Arc};
+use lsp_proxy::{run, AppState};
+use std::{
+    net::TcpListener,
+    path::Path,
+    sync::{Arc, Mutex},
+};
 use structopt::StructOpt;
 
 fn get_tcp_listener(port: i32) -> TcpListener {
@@ -16,11 +21,20 @@ async fn main() -> std::io::Result<()> {
     if !Path::new(&args.codebase_path).exists() {
         panic!("Directory does not exist!")
     }
-    let child = start_lang_server(Lang::Java, args.codebase_path).unwrap();
+    let path: String = args.codebase_path;
+
+    let child = start_lang_server(Lang::Java, path.clone()).unwrap();
     println!("Listening on {} ... 🚀", args.port);
+
+    let state = web::Data::new(AppState {
+        ws_session_started: Mutex::new(false),
+        lang: args.language,
+        workspace_dir: path,
+    });
     run(
         get_tcp_listener(args.port),
         Arc::new(std::sync::Mutex::new(child)),
+        state,
     )?
     .await
 }

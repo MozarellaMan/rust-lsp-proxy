@@ -1,8 +1,9 @@
 use std::{cell::Cell, process::Stdio, sync::Arc};
 
 use actix::{Actor, AsyncContext, StreamHandler};
-use actix_web::{web, Error, HttpRequest, HttpResponse};
+use actix_web::{error::ErrorBadRequest, web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
+use serde_json::json;
 use tokio::{
     io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
     process::{Child, ChildStdin, ChildStdout, Command},
@@ -10,11 +11,11 @@ use tokio::{
     sync::Mutex,
 };
 
-use crate::config::Lang;
+use crate::{config::Lang, AppState};
 
 const TEST_JAVA_SERVER_PATH: &str = "/home/ayomide/Development/LanguageServers/Java/eclipse.jdt.ls/org.eclipse.jdt.ls.product/target/repository";
 
-struct LangServer {
+pub struct LangServer {
     stdin: Arc<Mutex<ChildStdin>>,
     stdout: Cell<ChildStdout>,
 }
@@ -48,7 +49,10 @@ impl Actor for LangServer {
         unsafe {
             let stdout = &mut *self.stdout.as_ptr();
             let reader = BufReader::new(stdout).lines();
-            ctx.add_stream(reader.map(|l| Ok(Line(l.expect("Not a line")))));
+            ctx.add_stream(reader.map(|l| {
+                println!("{:?}", &l);
+                Ok(Line(l.expect("Not a line")))
+            }));
         }
     }
 }
@@ -62,6 +66,8 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for LangServer {
                 let stdin = self.stdin.clone();
 
                 let text = format!("Content-Length: {}\r\n\r\n{}", text.len(), text);
+
+                println!("Remote client: {}", &text);
 
                 let fut = async move {
                     let mut stdin = stdin.lock().await;
@@ -95,7 +101,7 @@ pub fn start_lang_server(lang: Lang, file_path: String) -> Option<Child> {
                 .arg("-noverify")
                 .arg("-Xmx1G")
                 .arg("-jar")
-                .arg("./plugins/org.eclipse.equinox.launcher_1.5.700.v20200207-2156.jar")
+                .arg("./plugins/org.eclipse.equinox.launcher_1.6.0.v20200915-1508.jar")
                 .arg("-configuration")
                 .arg("./config_linux")
                 .arg("-data")
@@ -118,8 +124,39 @@ pub async fn to_lsp(
     req: HttpRequest,
     stream: web::Payload,
     process: web::Data<Arc<std::sync::Mutex<Child>>>,
+    state: web::Data<AppState>,
 ) -> Result<HttpResponse, Error> {
-    let resp = ws::start(LangServer::new(process.as_ref().to_owned()), &req, stream);
-    println!("{:?}", resp);
-    resp
+    let mut session_started = state.ws_session_started.lock().unwrap();
+    if !*session_started {
+        let lang_server = LangServer::new(process.as_ref().to_owned());
+        let session = ws::start(lang_server, &req, stream);
+        println!("Language Server started\n{:?}", session);
+        *session_started = true;
+        session
+    } else {
+        Err(ErrorBadRequest(
+            "Language server web socket session already started.",
+        ))
+    }
+}
+
+pub async fn make_init_req() -> HttpResponse {
+    let dir =  "/home/ayomide/Development/LanguageServers/lsp-proxies/rust/actix-lsp-proxy/tests/example_code_repos/test-java-repo";
+    let msg = json!({
+        "path": dir,
+        "name": "test-java-repo",
+        "type": "directory",
+        "children": [{
+            "path": format!("{}/src", dir),
+            "name": "src",
+            "type": "directory",
+            "children": [{
+                "path": format!("{}/src/Hello.java", dir),
+                "name": "Hello.java",
+                "type": "java",
+                "children": [],
+            }],
+        }]
+    });
+    HttpResponse::Ok().json(msg)
 }

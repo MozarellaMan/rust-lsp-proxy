@@ -1,8 +1,8 @@
-use actix_web::web::Json;
+use actix_web::{HttpResponse, Responder, web::{self, Json}};
 use serde::{Deserialize, Serialize};
 use walkdir::{DirEntry, WalkDir};
 
-use crate::get_ls_args;
+use crate::{AppState, get_ls_args};
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -75,7 +75,7 @@ fn is_ignored(entry: &DirEntry) -> bool {
     entry
         .file_name()
         .to_str()
-        .map(|s| s.starts_with(".") || s.starts_with("jdt"))
+        .map(|s| s.starts_with(".") || s.starts_with("jdt") || s.ends_with(".class"))
         .unwrap_or(false)
 }
 
@@ -88,12 +88,14 @@ pub async fn get_dir() -> Result<Json<FileNode>, std::io::Error> {
     {
         paths.push(entry);
     }
-
     let mut top = FileNode::new(paths.get(0).unwrap());
     for _path in paths.iter() {
         build_file_tree(&mut top, &paths, 1);
     }
-
-    //println!("{}", serde_json::to_string_pretty(&top).unwrap());
     Ok(Json(top))
+}
+
+pub async fn get_root_uri(state: web::Data<AppState>) -> impl Responder {
+    let uri = format!("file:///{}", &state.workspace_dir);
+    HttpResponse::Ok().body(uri)
 }
