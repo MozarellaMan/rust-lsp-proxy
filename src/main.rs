@@ -7,7 +7,7 @@ use lsp_proxy::{run, AppState};
 use std::{
     net::TcpListener,
     path::Path,
-    sync::{Arc, Mutex},
+    sync::{atomic::AtomicBool, Arc},
 };
 use structopt::StructOpt;
 
@@ -27,7 +27,7 @@ async fn main() -> std::io::Result<()> {
     println!("Listening on {} ... 🚀", args.port);
 
     let state = web::Data::new(AppState {
-        ws_session_started: Mutex::new(false),
+        ws_session_started: AtomicBool::from(false),
         lang: args.language,
         workspace_dir: path,
     });

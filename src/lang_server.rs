@@ -1,4 +1,8 @@
-use std::{cell::Cell, process::Stdio, sync::Arc};
+use std::{
+    cell::Cell,
+    process::Stdio,
+    sync::{atomic::Ordering, Arc},
+};
 
 use actix::{Actor, AsyncContext, StreamHandler};
 use actix_web::{error::ErrorBadRequest, web, Error, HttpRequest, HttpResponse};
@@ -34,9 +38,8 @@ impl LangServer {
 
 impl StreamHandler<Result<Line, ws::ProtocolError>> for LangServer {
     fn handle(&mut self, msg: Result<Line, ws::ProtocolError>, ctx: &mut Self::Context) {
-        match msg {
-            Ok(line) => ctx.text(line.0),
-            _ => (), //Handle errors
+        if let Ok(line) = msg {
+            ctx.text(line.0)
         }
     }
 }
@@ -126,12 +129,13 @@ pub async fn to_lsp(
     process: web::Data<Arc<std::sync::Mutex<Child>>>,
     state: web::Data<AppState>,
 ) -> Result<HttpResponse, Error> {
-    let mut session_started = state.ws_session_started.lock().unwrap();
-    if !*session_started {
+    let session_started = state.ws_session_started.load(Ordering::Relaxed);
+    if !session_started {
         let lang_server = LangServer::new(process.as_ref().to_owned());
         let session = ws::start(lang_server, &req, stream);
         println!("Language Server started\n{:?}", session);
-        *session_started = true;
+        //*session_started.get_mut() = true;
+        state.ws_session_started.store(true, Ordering::Relaxed);
         session
     } else {
         Err(ErrorBadRequest(

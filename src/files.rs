@@ -1,8 +1,11 @@
-use actix_web::{HttpResponse, Responder, web::{self, Json}};
+use actix_web::{
+    web::{self, Json},
+    HttpResponse, Responder,
+};
 use serde::{Deserialize, Serialize};
 use walkdir::{DirEntry, WalkDir};
 
-use crate::{AppState, get_ls_args};
+use crate::{get_ls_args, AppState};
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -11,7 +14,7 @@ pub struct FileNode {
     pub name: String,
     #[serde(rename = "type")]
     pub file_type: String,
-    pub children: Vec<Box<FileNode>>,
+    pub children: Vec<FileNode>,
 }
 
 impl FileNode {
@@ -30,7 +33,7 @@ impl FileNode {
                     .unwrap()
                     .to_owned()
             },
-            children: Vec::<Box<FileNode>>::new(),
+            children: Vec::<FileNode>::new(),
         }
     }
 
@@ -47,12 +50,12 @@ impl FileNode {
     where
         T: Into<FileNode>,
     {
-        self.children.push(Box::new(leaf.into()));
+        self.children.push(leaf.into());
         self
     }
 }
 
-fn build_file_tree(node: &mut FileNode, parts: &Vec<DirEntry>, depth: usize) {
+fn build_file_tree(node: &mut FileNode, parts: &[DirEntry], depth: usize) {
     if depth < parts.len() {
         let item = &parts[depth];
 
@@ -75,7 +78,7 @@ fn is_ignored(entry: &DirEntry) -> bool {
     entry
         .file_name()
         .to_str()
-        .map(|s| s.starts_with(".") || s.starts_with("jdt") || s.ends_with(".class"))
+        .map(|s| s.starts_with('.') || s.starts_with("jdt") || s.ends_with(".class"))
         .unwrap_or(false)
 }
 

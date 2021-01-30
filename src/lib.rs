@@ -4,7 +4,7 @@ use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use lang_server::{make_init_req, to_lsp};
 use std::{
     net::TcpListener,
-    sync::{Arc, Mutex},
+    sync::{atomic::AtomicBool, Arc},
 };
 use structopt::StructOpt;
 use tokio::process::Child;
@@ -26,7 +26,7 @@ pub fn get_ls_args() -> LSArgs {
 }
 
 pub struct AppState {
-    pub ws_session_started: Mutex<bool>,
+    pub ws_session_started: AtomicBool,
     pub lang: config::Lang,
     pub workspace_dir: String,
 }
