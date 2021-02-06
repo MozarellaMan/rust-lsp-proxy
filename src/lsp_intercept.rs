@@ -35,18 +35,18 @@ async fn intercept_did_create(params: CreateFilesParams) {
         if let Ok(url) = uri {
             let path = url.to_file_path();
             let file_name = url.path_segments().map(|s| s.last()).unwrap_or_default();
-            if let (Ok(path), Some(name)) = (path, file_name) {
+            if let (Ok(mut path), Some(name)) = (path, file_name) {
                 let file_sync_msg = FileSyncMsg {
-                    reason: FileSyncType::Update,
+                    reason: FileSyncType::New,
                     name: name.to_string(),
                     text: None,
                 };
+                path.pop();
                 if let Err(err) = update_file(path, file_sync_msg).await {
-                    println!("{}", err)
+                    println!("could not update! {}", err)
                 }
             }
         }
-        //let file_name = uri.path_segments().map(|s| s.last()).unwrap_or_default();
     }
 }
 
@@ -72,7 +72,6 @@ async fn intercept_did_update(params: DidChangeTextDocumentParams) {
                 name: name.to_string(),
                 text: Some(change.text.clone()),
             };
-            println!("sync msg: {:?}", file_sync_msg);
             if let Err(err) = update_file(path.clone(), file_sync_msg).await {
                 println!("{}", err)
             }
