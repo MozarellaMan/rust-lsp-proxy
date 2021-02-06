@@ -1,6 +1,7 @@
 use actix::{Actor, AsyncContext, StreamHandler};
 use actix_web::{error::ErrorBadRequest, web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
+use serde_json::Value;
 use std::{
     cell::Cell,
     process::Stdio,
@@ -13,7 +14,7 @@ use tokio::{
     sync::Mutex,
 };
 
-use crate::{config::Lang, AppState};
+use crate::{config::Lang, lsp_intercept::intercept_notification, AppState};
 
 const TEST_JAVA_SERVER_PATH: &str = "/home/ayomide/Development/LanguageServers/Java/eclipse.jdt.ls/org.eclipse.jdt.ls.product/target/repository";
 
@@ -66,21 +67,29 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for LangServer {
             Ok(ws::Message::Text(text)) => {
                 let stdin = self.stdin.clone();
 
-                let text = format!("Content-Length: {}\r\n\r\n{}", text.len(), text);
+                let msg = serde_json::from_str::<Value>(&text);
+                println!("StartClient\n{}\nEndClient", &text);
 
-                println!("Remote client: {}", &text);
-
-                let fut = async move {
+                let intercept_fut = async move {
+                    if let Ok(msg) = msg {
+                        if let Err(err) = intercept_notification(msg).await {
+                            println!("err: {}", err);
+                        };
+                    }
+                };
+                let lang_server_fut = async move {
                     let mut stdin = stdin.lock().await;
-
+                    let text = format!("Content-Length: {}\r\n\r\n{}", text.len(), text);
                     if let Err(er) = stdin.write_all(&text.as_bytes()).await {
                         eprintln!("Error writing to language server! {:?}", er);
                     }
                     stdin.flush();
                 };
 
-                let fut = actix::fut::wrap_future(fut);
-                ctx.spawn(fut);
+                let lang_server_fut = actix::fut::wrap_future(lang_server_fut);
+                let intercept_fut = actix::fut::wrap_future(intercept_fut);
+                ctx.spawn(intercept_fut);
+                ctx.spawn(lang_server_fut);
             }
             Ok(ws::Message::Binary(bin)) => ctx.binary(bin),
             Err(_) => {}
