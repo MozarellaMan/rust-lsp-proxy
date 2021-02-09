@@ -10,6 +10,7 @@ use std::{
     sync::{atomic::AtomicBool, Arc},
 };
 use structopt::StructOpt;
+use tokio::sync::Mutex;
 
 fn get_tcp_listener(port: i32) -> TcpListener {
     TcpListener::bind(format!("127.0.0.1:{}", port)).expect("failed to bind port to {}")
@@ -30,6 +31,7 @@ async fn main() -> std::io::Result<()> {
         ws_session_started: AtomicBool::from(false),
         lang: args.language,
         workspace_dir: path,
+        code_input: Mutex::new(Vec::new()),
     });
     run(
         get_tcp_listener(args.port),

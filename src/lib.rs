@@ -7,7 +7,7 @@ use std::{
     sync::{atomic::AtomicBool, Arc},
 };
 use structopt::StructOpt;
-use tokio::process::Child;
+use tokio::{process::Child, sync::Mutex};
 
 pub mod code;
 pub mod config;
@@ -30,6 +30,7 @@ pub struct AppState {
     pub ws_session_started: AtomicBool,
     pub lang: config::Lang,
     pub workspace_dir: String,
+    pub code_input: Mutex<Vec<String>>,
 }
 
 pub fn run(
