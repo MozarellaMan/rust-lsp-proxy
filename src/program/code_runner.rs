@@ -2,12 +2,13 @@ use actix_web::{web, HttpRequest, HttpResponse, Result};
 use std::{
     path::{Path, PathBuf},
     process::Stdio,
-    time::Duration,
 };
-use tokio::{io::AsyncWriteExt, process::Command};
-use tokio::{stream::StreamExt, time::timeout};
+use tokio::process::Command;
+use tokio::stream::StreamExt;
 
 use crate::{config, file_system::file_sync_msg::FileSyncError, get_ls_args, AppState};
+
+use super::user_program::{UserProgram, UserProgramError};
 
 const MAX_INPUT_SIZE: usize = 262_144; // max payload size is 256k
 
@@ -44,10 +45,7 @@ pub async fn add_program_input(
     }
 }
 
-pub async fn run_file(
-    req: HttpRequest,
-    state: web::Data<AppState>,
-) -> Result<HttpResponse, FileSyncError> {
+pub async fn run_file(req: HttpRequest, state: web::Data<AppState>) -> Result<HttpResponse> {
     let path: PathBuf =
         req.match_info()
             .query("filename")
@@ -66,58 +64,43 @@ pub async fn run_file(
             .arg(&file_path)
             .output();
 
-        let comp_output = compiler.await.map_err(|_| FileSyncError::InternalError {
-            cause: "failed to compile user code".to_string(),
-        })?;
-
-        let mut runner = Command::new("java")
-            .current_dir(&state.workspace_dir)
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .arg(path)
-            .spawn()
-            .map_err(|_| FileSyncError::InternalError {
-                cause: "failed to spawn user code".to_string(),
-            })?;
-        {
-            read_user_program_input(state, &mut runner).await;
-        }
-
-        let run_output = timeout(Duration::from_secs(300), runner.wait_with_output())
+        let comp_output = compiler
             .await
-            .map_err(|_| FileSyncError::InternalError {
-                cause: "failed to run user code, timed out after 5 minues".to_string(),
-            })?
-            .map_err(|_| FileSyncError::InternalError {
-                cause: "failed to run user code".to_string(),
-            })?;
+            .map_err(|_| UserProgramError::FailedCompilation)?;
 
-        let output: Vec<u8> = comp_output
-            .stderr
-            .into_iter()
-            .chain(comp_output.stdout.into_iter())
-            .chain(run_output.stdout.into_iter())
-            .chain(run_output.stderr.into_iter())
-            .collect();
+        if let Ok(user_program) = &mut state.user_program.try_lock() {
+            user_program.replace(UserProgram(Some(
+                Command::new("java")
+                    .current_dir(&state.workspace_dir)
+                    .stdin(Stdio::piped())
+                    .stdout(Stdio::piped())
+                    .stderr(Stdio::piped())
+                    .arg(path)
+                    .spawn()
+                    .map_err(|_| FileSyncError::InternalError {
+                        cause: "failed to spawn user code".to_string(),
+                    })?,
+            )));
 
-        return Ok(HttpResponse::Ok().body(output));
-    }
+            if user_program.is_some() {
+                let user_program = user_program.as_mut().unwrap();
 
-    Ok(HttpResponse::NotFound().body("Nothing to execute."))
-}
-
-async fn read_user_program_input(state: web::Data<AppState>, runner: &mut tokio::process::Child) {
-    if let Ok(inputs) = state.program_input.try_lock() {
-        if !inputs.is_empty() {
-            if let Some(stdin) = &mut runner.stdin {
-                for input in inputs.iter() {
-                    if let Err(er) = stdin.write_all(&input.as_bytes()).await {
-                        eprintln!("Error writing to child process {:?}", er);
-                    }
-                    stdin.flush();
+                if let Ok(inputs) = state.program_input.try_lock() {
+                    user_program.read_user_program_input(&inputs).await?
                 }
+
+                let run_output = user_program.wait_with_output().await?;
+
+                let output: Vec<u8> = comp_output
+                    .stderr
+                    .into_iter()
+                    .chain(comp_output.stdout.into_iter())
+                    .chain(run_output)
+                    .collect();
+
+                return Ok(HttpResponse::Ok().body(output));
             }
         }
     }
+    Ok(HttpResponse::NotFound().body("Nothing to execute."))
 }

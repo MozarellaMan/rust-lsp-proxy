@@ -2,7 +2,7 @@ use crate::config::LSArgs;
 use actix_web::{dev::Server, middleware::Logger, web::Data};
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use file_system::file_sync::{get_dir, get_file, get_root_uri};
-use program::code_runner::run_file;
+use program::{code_runner::run_file, user_program::UserProgram};
 use std::{
     net::TcpListener,
     sync::{atomic::AtomicBool, Arc},
@@ -15,7 +15,6 @@ pub mod file_system;
 pub mod language_server;
 pub mod program;
 
-// pub fn test_config() -> Option<LSArgs> {}
 
 async fn health_check() -> impl Responder {
     HttpResponse::Ok()
@@ -30,7 +29,7 @@ pub struct AppState {
     pub lang: config::Lang,
     pub workspace_dir: String,
     pub program_input: Mutex<Vec<String>>,
-    pub running_program: Arc<Mutex<Option<Child>>>,
+    pub user_program: Arc<Mutex<Option<UserProgram>>>,
 }
 
 pub fn run(
