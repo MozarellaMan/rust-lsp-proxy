@@ -12,7 +12,7 @@ impl UserProgram {
             let run_output = child
                 .wait_with_output()
                 .await
-                .map_err(|_| UserProgramError::FaildRun)?;
+                .map_err(|_| UserProgramError::FailedRun)?;
 
             let output: Vec<u8> = run_output
                 .stdout
@@ -57,7 +57,7 @@ impl UserProgram {
 #[derive(Debug, Display, Error)]
 pub enum UserProgramError {
     #[display(fmt = "Program failed to start")]
-    FaildRun,
+    FailedRun,
     #[display(fmt = "Program failed to compile")]
     FailedCompilation,
     #[display(fmt = "No program to run")]
