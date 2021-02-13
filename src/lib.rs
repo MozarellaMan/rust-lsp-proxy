@@ -15,6 +15,7 @@ pub mod file_sync;
 pub mod files;
 pub mod lang_server;
 pub mod lsp_intercept;
+pub mod file_sync_msg;
 
 // pub fn test_config() -> Option<LSArgs> {}
 
@@ -30,7 +31,8 @@ pub struct AppState {
     pub ws_session_started: AtomicBool,
     pub lang: config::Lang,
     pub workspace_dir: String,
-    pub code_input: Mutex<Vec<String>>,
+    pub program_input: Mutex<Vec<String>>,
+    pub running_program: Arc<Mutex<Option<Child>>>,
 }
 
 pub fn run(
@@ -48,8 +50,8 @@ pub fn run(
             .service(
                 web::scope("/code")
                     .route("/file/{filename:.*}", web::get().to(code::get_file))
-                    .route("/directory", web::get().to(files::get_dir))
-                    .route("/directory/root", web::get().to(files::get_root_uri))
+                    .route("/directory", web::get().to(file_sync::get_dir))
+                    .route("/directory/root", web::get().to(file_sync::get_root_uri))
                     .route("/run/{filename:.*}", web::get().to(code::run_file)),
             )
             .route("/health", web::get().to(health_check))
@@ -71,7 +73,7 @@ pub fn test_run(listener: TcpListener) -> Result<Server, std::io::Error> {
             .service(
                 web::scope("/code")
                     .route("/file/{filename:.*}", web::get().to(code::get_file))
-                    .route("/directory", web::get().to(files::get_dir)),
+                    .route("/directory", web::get().to(file_sync::get_dir)),
             )
             .route("/health", web::get().to(health_check))
     })

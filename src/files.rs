@@ -1,11 +1,5 @@
-use actix_web::{
-    web::{self, Json},
-    HttpResponse, Responder,
-};
 use serde::{Deserialize, Serialize};
-use walkdir::{DirEntry, WalkDir};
-
-use crate::{get_ls_args, AppState};
+use walkdir::DirEntry;
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -18,7 +12,7 @@ pub struct FileNode {
 }
 
 impl FileNode {
-    fn new(entry: &DirEntry) -> FileNode {
+    pub fn new(entry: &DirEntry) -> FileNode {
         FileNode {
             path: entry.path().display().to_string(),
             name: String::from(entry.file_name().to_str().unwrap()),
@@ -55,7 +49,7 @@ impl FileNode {
     }
 }
 
-fn build_file_tree(node: &mut FileNode, parts: &[DirEntry], depth: usize) {
+pub fn build_file_tree(node: &mut FileNode, parts: &[DirEntry], depth: usize) {
     if depth < parts.len() {
         let item = &parts[depth];
 
@@ -74,7 +68,7 @@ fn build_file_tree(node: &mut FileNode, parts: &[DirEntry], depth: usize) {
     }
 }
 
-fn is_ignored(entry: &DirEntry) -> bool {
+pub fn is_ignored(entry: &DirEntry) -> bool {
     entry
         .file_name()
         .to_str()
@@ -82,23 +76,4 @@ fn is_ignored(entry: &DirEntry) -> bool {
         .unwrap_or(false)
 }
 
-pub async fn get_dir() -> Result<Json<FileNode>, std::io::Error> {
-    let mut paths: Vec<DirEntry> = Vec::new();
-    for entry in WalkDir::new(get_ls_args().codebase_path)
-        .into_iter()
-        .filter_entry(|e| !is_ignored(&e))
-        .filter_map(|e| e.ok())
-    {
-        paths.push(entry);
-    }
-    let mut top = FileNode::new(paths.get(0).unwrap());
-    for _path in paths.iter() {
-        build_file_tree(&mut top, &paths, 1);
-    }
-    Ok(Json(top))
-}
 
-pub async fn get_root_uri(state: web::Data<AppState>) -> impl Responder {
-    let uri = format!("file:///{}", &state.workspace_dir);
-    HttpResponse::Ok().body(uri)
-}

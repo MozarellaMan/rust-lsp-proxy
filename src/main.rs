@@ -31,7 +31,8 @@ async fn main() -> std::io::Result<()> {
         ws_session_started: AtomicBool::from(false),
         lang: args.language,
         workspace_dir: path,
-        code_input: Mutex::new(Vec::new()),
+        program_input: Mutex::new(Vec::new()),
+        running_program: Arc::new(Mutex::new(None))
     });
     run(
         get_tcp_listener(args.port),

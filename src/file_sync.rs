@@ -1,36 +1,8 @@
-use actix_web::{dev::HttpResponseBuilder, error, http::header, http::StatusCode, HttpResponse};
-use derive_more::{Display, Error};
-use serde::Deserialize;
 use std::path::PathBuf;
+use actix_web::{HttpResponse, Responder, web::{self, Json}};
 use tokio::{fs::OpenOptions, io::AsyncWriteExt};
-
-#[derive(Deserialize, Debug)]
-pub enum FileSyncType {
-    New,
-    Update,
-    Delete,
-}
-#[derive(Deserialize, Debug)]
-pub struct FileSyncMsg {
-    pub reason: FileSyncType,
-    pub name: String,
-    pub text: Option<String>,
-}
-
-#[derive(Debug, Display, Error)]
-pub enum FileSyncError {
-    #[display(fmt = "Sync unsucessful: internal error {}", cause)]
-    InternalError { cause: String },
-
-    #[display(fmt = "Sync unsucessful: {}", cause)]
-    BadClientData { cause: String },
-
-    #[display(fmt = "Sync unsucessful: timeout")]
-    Timeout,
-
-    #[display(fmt = "Sync unsucessful: file not found")]
-    NotFound,
-}
+use walkdir::{DirEntry, WalkDir};
+use crate::{AppState, file_sync_msg::{FileSyncError, FileSyncMsg, FileSyncType, map_io_err}, files::{FileNode, build_file_tree, is_ignored}, get_ls_args};
 
 pub async fn update_file(path: PathBuf, update: FileSyncMsg) -> Result<(), FileSyncError> {
     match update.reason {
@@ -67,28 +39,24 @@ pub async fn update_file(path: PathBuf, update: FileSyncMsg) -> Result<(), FileS
     Ok(())
 }
 
-pub fn map_io_err(e: std::io::Error) -> FileSyncError {
-    match e.kind() {
-        std::io::ErrorKind::NotFound => FileSyncError::NotFound,
-        _ => FileSyncError::InternalError {
-            cause: e.to_string(),
-        },
+pub async fn get_dir() -> Result<Json<FileNode>, std::io::Error> {
+    let mut paths: Vec<DirEntry> = Vec::new();
+    for entry in WalkDir::new(get_ls_args().codebase_path)
+        .into_iter()
+        .filter_entry(|e| !is_ignored(&e))
+        .filter_map(|e| e.ok())
+    {
+        paths.push(entry);
     }
+    let mut top = FileNode::new(paths.get(0).unwrap());
+    for _path in paths.iter() {
+        build_file_tree(&mut top, &paths, 1);
+    }
+    Ok(Json(top))
 }
 
-impl error::ResponseError for FileSyncError {
-    fn error_response(&self) -> HttpResponse {
-        HttpResponseBuilder::new(self.status_code())
-            .set_header(header::CONTENT_TYPE, "text/html; charset=utf-8")
-            .body(self.to_string())
-    }
-
-    fn status_code(&self) -> StatusCode {
-        match *self {
-            FileSyncError::InternalError { .. } => StatusCode::INTERNAL_SERVER_ERROR,
-            FileSyncError::BadClientData { .. } => StatusCode::BAD_REQUEST,
-            FileSyncError::Timeout => StatusCode::GATEWAY_TIMEOUT,
-            FileSyncError::NotFound => StatusCode::NOT_FOUND,
-        }
-    }
+pub async fn get_root_uri(state: web::Data<AppState>) -> impl Responder {
+    let uri = format!("file:///{}", &state.workspace_dir);
+    HttpResponse::Ok().body(uri)
 }
+

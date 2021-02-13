@@ -8,7 +8,7 @@ use std::{
 use tokio::{io::AsyncWriteExt, process::Command};
 use tokio::{stream::StreamExt, time::timeout};
 
-use crate::{config, file_sync::FileSyncError, get_ls_args, AppState};
+use crate::{AppState, config, file_sync_msg::FileSyncError, get_ls_args};
 
 const MAX_INPUT_SIZE: usize = 262_144; // max payload size is 256k
 
@@ -30,7 +30,7 @@ pub async fn add_program_input(
         body.extend_from_slice(&chunk);
     }
 
-    if let Ok(inputs) = &mut state.code_input.try_lock() {
+    if let Ok(inputs) = &mut state.program_input.try_lock() {
         //let input = body.to_owned()
         let input: Vec<String> = String::from_utf8_lossy(&body.to_vec())
             .split('\n')
@@ -110,7 +110,7 @@ pub async fn run_file(
 }
 
 async fn read_user_program_input(state: web::Data<AppState>, runner: &mut tokio::process::Child) {
-    if let Ok(inputs) = state.code_input.try_lock() {
+    if let Ok(inputs) = state.program_input.try_lock() {
         if !inputs.is_empty() {
             if let Some(stdin) = &mut runner.stdin {
                 for input in inputs.iter() {
