@@ -62,38 +62,32 @@ impl Actor for LangServer {
 /// Handler for ws::Message message
 impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for LangServer {
     fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
-        match msg {
-            Ok(ws::Message::Ping(msg)) => ctx.pong(&msg),
-            Ok(ws::Message::Text(text)) => {
-                let stdin = self.stdin.clone();
+    if let Ok(ws::Message::Text(text)) = msg {
+        let stdin = self.stdin.clone();
 
-                let msg = serde_json::from_str::<Value>(&text);
-                println!("StartClient\n{}\nEndClient", &text);
+        let msg = serde_json::from_str::<Value>(&text);
+        println!("StartClient\n{}\nEndClient", &text);
 
-                let intercept_fut = async move {
-                    if let Ok(msg) = msg {
-                        if let Err(err) = intercept_notification(msg).await {
-                            println!("err: {}", err);
-                        };
-                    }
+        let intercept_fut = async move {
+            if let Ok(msg) = msg {
+                if let Err(err) = intercept_notification(msg).await {
+                    println!("err: {}", err);
                 };
-                let lang_server_fut = async move {
-                    let mut stdin = stdin.lock().await;
-                    let text = format!("Content-Length: {}\r\n\r\n{}", text.len(), text);
-                    if let Err(er) = stdin.write_all(&text.as_bytes()).await {
-                        eprintln!("Error writing to language server! {:?}", er);
-                    }
-                    stdin.flush();
-                };
-
-                let lang_server_fut = actix::fut::wrap_future(lang_server_fut);
-                let intercept_fut = actix::fut::wrap_future(intercept_fut);
-                ctx.spawn(intercept_fut);
-                ctx.spawn(lang_server_fut);
             }
-            Ok(ws::Message::Binary(bin)) => ctx.binary(bin),
-            Err(_) => {}
-            _ => {}
+        };
+        let lang_server_fut = async move {
+            let mut stdin = stdin.lock().await;
+            let text = format!("Content-Length: {}\r\n\r\n{}", text.len(), text);
+            if let Err(er) = stdin.write_all(&text.as_bytes()).await {
+                eprintln!("Error writing to language server! {:?}", er);
+            }
+            stdin.flush();
+        };
+
+        let lang_server_fut = actix::fut::wrap_future(lang_server_fut);
+        let intercept_fut = actix::fut::wrap_future(intercept_fut);
+        ctx.spawn(intercept_fut);
+        ctx.spawn(lang_server_fut);
         }
     }
 }
@@ -141,7 +135,6 @@ pub async fn to_lsp(
         let lang_server = LangServer::new(process.as_ref().to_owned());
         let session = ws::start(lang_server, &req, stream);
         println!("Language Server started\n{:?}", session);
-        //*session_started.get_mut() = true;
         state.ws_session_started.store(true, Ordering::Relaxed);
         session
     } else {

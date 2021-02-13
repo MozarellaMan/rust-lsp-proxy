@@ -76,6 +76,7 @@ pub async fn run_file(
             .current_dir(&state.workspace_dir)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
             .arg(path)
             .spawn()
             .map_err(|_| FileSyncError::InternalError {
@@ -98,8 +99,8 @@ pub async fn run_file(
             .stderr
             .into_iter()
             .chain(comp_output.stdout.into_iter())
-            .chain(run_output.stderr.into_iter())
             .chain(run_output.stdout.into_iter())
+            .chain(run_output.stderr.into_iter())
             .collect();
 
         return Ok(HttpResponse::Ok().body(output));

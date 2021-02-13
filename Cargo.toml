@@ -4,9 +4,6 @@ version = "0.1.0"
 authors = ["Ayomide Bamidele <ayoeze@hotmail.com>"]
 edition = "2018"
 
-[lib]
-path = "src/lib.rs"
-
 [[bin]]
 path = "src/main.rs"
 name = "app"
@@ -16,7 +13,7 @@ name = "app"
 actix-web = "3"
 structopt = "0.3.17"
 clap = "2.33.3"
-actix-files = "0.4.1"
+actix-files = "0.5.0"
 mime = "0.3.16"
 env_logger = "0.8.2"
 tokio = { version = "0.2.22", features = ["process", "rt-core", "fs", "time"] }
@@ -34,5 +31,5 @@ actix-rt = "1"
 reqwest = { version = "0.10.10", features = ["json"] }
 tokio = "0.2.22"
 websocket = "0.26.2"
-claim = "0.4.0"
-assert-json-diff = "1.1.0"
+claim = "0.5.0"
+assert-json-diff = "2.0.0"
