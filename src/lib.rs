@@ -2,7 +2,7 @@ use crate::config::LSArgs;
 use actix_web::{dev::Server, middleware::Logger, web::Data};
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use file_system::file_sync::{get_dir, get_file, get_root_uri};
-use program::{code_runner::run_file, user_program::UserProgram};
+use program::{code_runner::run_current_program, user_program::UserProgram};
 use std::{
     net::TcpListener,
     sync::{atomic::AtomicBool, Arc},
@@ -14,7 +14,6 @@ pub mod config;
 pub mod file_system;
 pub mod language_server;
 pub mod program;
-
 
 async fn health_check() -> impl Responder {
     HttpResponse::Ok()
@@ -49,7 +48,7 @@ pub fn run(
                     .route("/file/{filename:.*}", web::get().to(get_file))
                     .route("/directory", web::get().to(get_dir))
                     .route("/directory/root", web::get().to(get_root_uri))
-                    .route("/run/{filename:.*}", web::get().to(run_file)),
+                    .route("/run/{filename:.*}", web::get().to(run_current_program)),
             )
             .route("/health", web::get().to(health_check))
             .data(child.clone())

@@ -41,7 +41,7 @@ impl UserProgram {
                 }
             }
             Ok(())
-        } else  {
+        } else {
             Err(UserProgramError::NoProgram)
         }
     }
@@ -64,6 +64,8 @@ pub enum UserProgramError {
     NoProgram,
     #[display(fmt = "Program failed to exit")]
     FailedKill,
+    #[display(fmt = "Running this programming language is not currently supported")]
+    UnsupportedLanguage,
 }
 
 impl error::ResponseError for UserProgramError {
