@@ -14,7 +14,9 @@ use tokio::{
     sync::Mutex,
 };
 
-use crate::{config::Lang, lsp_intercept::intercept_notification, AppState};
+use crate::{config::Lang, AppState};
+
+use super::intercept::intercept_notification;
 
 const TEST_JAVA_SERVER_PATH: &str = "/home/ayomide/Development/LanguageServers/Java/eclipse.jdt.ls/org.eclipse.jdt.ls.product/target/repository";
 

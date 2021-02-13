@@ -1,7 +1,7 @@
 use lsp_types::{CreateFilesParams, DidChangeTextDocumentParams, Url};
 use serde_json::Value;
 
-use crate::{
+use crate::file_system::{
     file_sync::update_file,
     file_sync_msg::{FileSyncMsg, FileSyncType},
 };

@@ -1,7 +1,8 @@
 use crate::config::LSArgs;
 use actix_web::{dev::Server, middleware::Logger, web::Data};
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
-use lang_server::to_lsp;
+use file_system::file_sync::{get_dir, get_file, get_root_uri};
+use program::code_runner::run_file;
 use std::{
     net::TcpListener,
     sync::{atomic::AtomicBool, Arc},
@@ -9,13 +10,10 @@ use std::{
 use structopt::StructOpt;
 use tokio::{process::Child, sync::Mutex};
 
-pub mod code;
 pub mod config;
-pub mod file_sync;
-pub mod file_sync_msg;
-pub mod files;
-pub mod lang_server;
-pub mod lsp_intercept;
+pub mod file_system;
+pub mod language_server;
+pub mod program;
 
 // pub fn test_config() -> Option<LSArgs> {}
 
@@ -49,14 +47,14 @@ pub fn run(
             .app_data(state.clone())
             .service(
                 web::scope("/code")
-                    .route("/file/{filename:.*}", web::get().to(file_sync::get_file))
-                    .route("/directory", web::get().to(file_sync::get_dir))
-                    .route("/directory/root", web::get().to(file_sync::get_root_uri))
-                    .route("/run/{filename:.*}", web::get().to(code::run_file)),
+                    .route("/file/{filename:.*}", web::get().to(get_file))
+                    .route("/directory", web::get().to(get_dir))
+                    .route("/directory/root", web::get().to(get_root_uri))
+                    .route("/run/{filename:.*}", web::get().to(run_file)),
             )
             .route("/health", web::get().to(health_check))
             .data(child.clone())
-            .route("/ls", web::route().to(to_lsp))
+            .route("/ls", web::route().to(language_server::server::to_lsp))
     })
     .listen(listener)?
     .run();
@@ -72,8 +70,8 @@ pub fn test_run(listener: TcpListener) -> Result<Server, std::io::Error> {
             .wrap(Logger::default())
             .service(
                 web::scope("/code")
-                    .route("/file/{filename:.*}", web::get().to(file_sync::get_file))
-                    .route("/directory", web::get().to(file_sync::get_dir)),
+                    .route("/file/{filename:.*}", web::get().to(get_file))
+                    .route("/directory", web::get().to(get_dir)),
             )
             .route("/health", web::get().to(health_check))
     })

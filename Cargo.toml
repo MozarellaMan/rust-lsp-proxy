@@ -5,8 +5,8 @@ authors = ["Ayomide Bamidele <ayoeze@hotmail.com>"]
 edition = "2018"
 
 [[bin]]
-path = "src/main.rs"
-name = "app"
+path = "src/bin/main.rs"
+name = "lsp_proxy"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

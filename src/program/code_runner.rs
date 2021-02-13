@@ -7,7 +7,7 @@ use std::{
 use tokio::{io::AsyncWriteExt, process::Command};
 use tokio::{stream::StreamExt, time::timeout};
 
-use crate::{config, file_sync_msg::FileSyncError, get_ls_args, AppState};
+use crate::{config, file_system::file_sync_msg::FileSyncError, get_ls_args, AppState};
 
 const MAX_INPUT_SIZE: usize = 262_144; // max payload size is 256k
 

@@ -1,7 +1,7 @@
 use actix_web::web;
 use lsp_proxy::{
     config::{LSArgs, Lang},
-    lang_server::start_lang_server,
+    language_server::server::start_lang_server,
 };
 use lsp_proxy::{run, AppState};
 use std::{
