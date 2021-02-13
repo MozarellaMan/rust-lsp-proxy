@@ -42,7 +42,10 @@ pub async fn add_program_input(
     }
 }
 
-pub async fn run_current_program(req: HttpRequest, state: web::Data<AppState>) -> Result<HttpResponse> {
+pub async fn run_program_file(
+    req: HttpRequest,
+    state: web::Data<AppState>,
+) -> Result<HttpResponse> {
     let path: PathBuf =
         req.match_info()
             .query("filename")
@@ -56,13 +59,20 @@ pub async fn run_current_program(req: HttpRequest, state: web::Data<AppState>) -
         return Ok(HttpResponse::NotFound().body("Nothing to execute."));
     }
 
-    match &state.lang {
-        config::Lang::Java => {
-            run_java_prog(state, file_path, path).await?;
-        }
+    let output = match &state.lang {
+        config::Lang::Java => run_java_prog(state, file_path, path).await?,
         config::Lang::C => return Err(UserProgramError::UnsupportedLanguage.into()),
-    }
-    Ok(HttpResponse::NotFound().body("Nothing to execute."))
+    };
+
+    Ok(output)
 }
 
-pub async fn kill_current_program() {}
+pub async fn kill_current_program(state: web::Data<AppState>) -> Result<HttpResponse> {
+    if let Ok(user_program) = &mut state.user_program.try_lock() {
+        if user_program.is_some() {
+            let user_program = user_program.as_mut().unwrap();
+            user_program.stop().await?;
+        }
+    }
+    Ok(HttpResponse::Ok().body("Program killed."))
+}
