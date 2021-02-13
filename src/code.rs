@@ -1,5 +1,4 @@
-use actix_files::NamedFile;
-use actix_web::{http::ContentEncoding, web, HttpRequest, HttpResponse, Result};
+use actix_web::{web, HttpRequest, HttpResponse, Result};
 use std::{
     path::{Path, PathBuf},
     process::Stdio,
@@ -8,7 +7,7 @@ use std::{
 use tokio::{io::AsyncWriteExt, process::Command};
 use tokio::{stream::StreamExt, time::timeout};
 
-use crate::{AppState, config, file_sync_msg::FileSyncError, get_ls_args};
+use crate::{config, file_sync_msg::FileSyncError, get_ls_args, AppState};
 
 const MAX_INPUT_SIZE: usize = 262_144; // max payload size is 256k
 
@@ -31,7 +30,6 @@ pub async fn add_program_input(
     }
 
     if let Ok(inputs) = &mut state.program_input.try_lock() {
-        //let input = body.to_owned()
         let input: Vec<String> = String::from_utf8_lossy(&body.to_vec())
             .split('\n')
             .map(|s| s.to_string())
@@ -122,13 +120,4 @@ async fn read_user_program_input(state: web::Data<AppState>, runner: &mut tokio:
             }
         }
     }
-}
-
-pub async fn get_file(req: HttpRequest) -> Result<NamedFile> {
-    let path: PathBuf = req.match_info().query("filename").parse()?;
-    let path = Path::new(&get_ls_args().codebase_path).join(path);
-    let file = NamedFile::open(path)?
-        .set_content_type(mime::TEXT_PLAIN_UTF_8)
-        .set_content_encoding(ContentEncoding::Gzip);
-    Ok(file)
 }

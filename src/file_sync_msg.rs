@@ -1,7 +1,6 @@
-
-use serde::Deserialize;
-use derive_more::{Display, Error};
 use actix_web::{dev::HttpResponseBuilder, error, http::header, http::StatusCode, HttpResponse};
+use derive_more::{Display, Error};
+use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
 pub enum FileSyncType {
@@ -56,4 +55,3 @@ impl error::ResponseError for FileSyncError {
         }
     }
 }
-

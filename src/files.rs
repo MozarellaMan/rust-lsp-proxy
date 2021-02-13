@@ -75,5 +75,3 @@ pub fn is_ignored(entry: &DirEntry) -> bool {
         .map(|s| s.starts_with('.') || s.starts_with("jdt") || s.ends_with(".class"))
         .unwrap_or(false)
 }
-
-

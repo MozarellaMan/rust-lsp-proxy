@@ -12,10 +12,10 @@ use tokio::{process::Child, sync::Mutex};
 pub mod code;
 pub mod config;
 pub mod file_sync;
+pub mod file_sync_msg;
 pub mod files;
 pub mod lang_server;
 pub mod lsp_intercept;
-pub mod file_sync_msg;
 
 // pub fn test_config() -> Option<LSArgs> {}
 
@@ -49,7 +49,7 @@ pub fn run(
             .app_data(state.clone())
             .service(
                 web::scope("/code")
-                    .route("/file/{filename:.*}", web::get().to(code::get_file))
+                    .route("/file/{filename:.*}", web::get().to(file_sync::get_file))
                     .route("/directory", web::get().to(file_sync::get_dir))
                     .route("/directory/root", web::get().to(file_sync::get_root_uri))
                     .route("/run/{filename:.*}", web::get().to(code::run_file)),
@@ -72,7 +72,7 @@ pub fn test_run(listener: TcpListener) -> Result<Server, std::io::Error> {
             .wrap(Logger::default())
             .service(
                 web::scope("/code")
-                    .route("/file/{filename:.*}", web::get().to(code::get_file))
+                    .route("/file/{filename:.*}", web::get().to(file_sync::get_file))
                     .route("/directory", web::get().to(file_sync::get_dir)),
             )
             .route("/health", web::get().to(health_check))
