@@ -4,7 +4,7 @@ use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use file_system::file_sync::{get_dir, get_file, get_root_uri};
 
 use program::{
-    code_runner::{kill_current_program, run_program_file},
+    code_runner::{add_program_input, kill_current_program, run_program_file},
     user_program::{UserProgram, UserProgramHandle},
 };
 use std::{
@@ -54,7 +54,8 @@ pub fn run(
                     .route("/directory", web::get().to(get_dir))
                     .route("/directory/root", web::get().to(get_root_uri))
                     .route("/run/{filename:.*}", web::get().to(run_program_file))
-                    .route("/kill", web::get().to(kill_current_program)),
+                    .route("/kill", web::get().to(kill_current_program))
+                    .route("/input", web::post().to(add_program_input)),
             )
             .route("/health", web::get().to(health_check))
             .data(child.clone())

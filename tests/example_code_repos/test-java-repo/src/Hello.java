@@ -6,7 +6,8 @@ class Hello {
         System.out.println("What's your name?");
 
         Scanner in = new Scanner(System.in);
-        //System.out.println("Hello " + s + "!"); 
+        String s = in.nextLine();
+        System.out.println("Hello " + s + "!"); 
 
         in.close();
         //while (true) ;
