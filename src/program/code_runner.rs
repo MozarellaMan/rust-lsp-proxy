@@ -73,6 +73,6 @@ pub async fn kill_current_program(state: web::Data<AppState>) -> Result<HttpResp
         user_program_handle.take().unwrap().abort();
         Ok(HttpResponse::Ok().body("Program killed."))
     } else {
-        Err(UserProgramError::FailedProgramLock.into())
+        Err(UserProgramError::FailedKill.into())
     }
 }
