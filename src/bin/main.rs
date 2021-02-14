@@ -33,6 +33,7 @@ async fn main() -> std::io::Result<()> {
         workspace_dir: path,
         program_input: Mutex::new(Vec::new()),
         user_program: Arc::new(Mutex::new(None)),
+        user_program_handle: Arc::new(Mutex::new(None)),
     });
     run(
         get_tcp_listener(args.port),

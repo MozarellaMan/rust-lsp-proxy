@@ -68,11 +68,11 @@ pub async fn run_program_file(
 }
 
 pub async fn kill_current_program(state: web::Data<AppState>) -> Result<HttpResponse> {
-    if let Ok(user_program) = &mut state.user_program.try_lock() {
-        if user_program.is_some() {
-            let user_program = user_program.as_mut().unwrap();
-            user_program.stop().await?;
-        }
+    let user_program_handle = &mut state.user_program_handle.lock().await;
+    if user_program_handle.is_some() {
+        user_program_handle.take().unwrap().abort();
+        Ok(HttpResponse::Ok().body("Program killed."))
+    } else {
+        Err(UserProgramError::FailedProgramLock.into())
     }
-    Ok(HttpResponse::Ok().body("Program killed."))
 }

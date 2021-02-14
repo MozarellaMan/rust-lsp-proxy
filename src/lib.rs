@@ -2,9 +2,10 @@ use crate::config::LSArgs;
 use actix_web::{dev::Server, middleware::Logger, web::Data};
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use file_system::file_sync::{get_dir, get_file, get_root_uri};
+
 use program::{
     code_runner::{kill_current_program, run_program_file},
-    user_program::UserProgram,
+    user_program::{UserProgram, UserProgramHandle},
 };
 use std::{
     net::TcpListener,
@@ -32,6 +33,7 @@ pub struct AppState {
     pub workspace_dir: String,
     pub program_input: Mutex<Vec<String>>,
     pub user_program: Arc<Mutex<Option<UserProgram>>>,
+    pub user_program_handle: Arc<Mutex<Option<UserProgramHandle>>>,
 }
 
 pub fn run(

@@ -24,13 +24,14 @@ pub async fn run_java_prog(
     if let Ok(user_program) = &mut state.user_program.try_lock() {
         user_program.replace(UserProgram(Some(
             Command::new("java")
+                .kill_on_drop(true)
                 .current_dir(&state.workspace_dir)
                 .stdin(Stdio::piped())
                 .stdout(Stdio::piped())
                 .stderr(Stdio::piped())
                 .arg(path)
                 .spawn()
-                .map_err(|_| UserProgramError::FailedCompilation)?,
+                .map_err(|_| UserProgramError::FailedRun)?,
         )));
 
         if user_program.is_some() {
@@ -40,7 +41,9 @@ pub async fn run_java_prog(
                 user_program.read_user_program_input(&inputs).await?
             }
 
-            let run_output = user_program.wait_with_output().await?;
+            let run_output = user_program
+                .wait_with_output(&state.user_program_handle)
+                .await?;
 
             let output: Vec<u8> = comp_output
                 .stderr
@@ -51,6 +54,8 @@ pub async fn run_java_prog(
 
             return Ok(HttpResponse::Ok().body(output));
         }
+    } else {
+        return Err(UserProgramError::FailedProgramLock.into());
     }
     Err(UserProgramError::FailedRun.into())
 }

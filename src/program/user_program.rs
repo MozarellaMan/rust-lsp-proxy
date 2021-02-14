@@ -1,25 +1,43 @@
 use actix_web::{dev::HttpResponseBuilder, error, http::header, http::StatusCode, HttpResponse};
-use tokio::{io::AsyncWriteExt, process::Child};
-
 use derive_more::{Display, Error};
+use futures_util::{
+    future::{AbortHandle, Abortable},
+    TryFutureExt,
+};
+use std::process::Output;
+use tokio::{io::AsyncWriteExt, process::Child, sync::Mutex};
 
 #[derive(Debug)]
 pub struct UserProgram(pub Option<Child>);
 
+pub type UserProgramHandle = AbortHandle;
+
 impl UserProgram {
-    pub async fn wait_with_output(&mut self) -> Result<Vec<u8>, UserProgramError> {
+    pub async fn wait_with_output(
+        &mut self,
+        handle_state: &Mutex<Option<UserProgramHandle>>,
+    ) -> Result<Vec<u8>, UserProgramError> {
         if let Some(child) = self.0.take() {
-            let run_output = child
-                .wait_with_output()
+            let (abort_handle, abort_registration) = AbortHandle::new_pair();
+            let run_output = Abortable::new(
+                child
+                    .wait_with_output()
+                    .map_err(|_| UserProgramError::NoOutput),
+                abort_registration,
+            );
+
+            if let Ok(handle) = &mut handle_state.try_lock() {
+                handle.replace(abort_handle.clone());
+            }
+            let run_output: Output = run_output
                 .await
-                .map_err(|_| UserProgramError::FailedRun)?;
+                .map_err(|_| UserProgramError::FailedRun)??;
 
             let output: Vec<u8> = run_output
                 .stdout
                 .into_iter()
                 .chain(run_output.stderr.into_iter())
                 .collect();
-
             return Ok(output);
         }
         Err(UserProgramError::NoProgram)
@@ -49,12 +67,13 @@ impl UserProgram {
     pub async fn stop(&mut self) -> Result<(), UserProgramError> {
         if let Some(child) = &mut self.0.take() {
             child.kill().map_err(|_| UserProgramError::FailedKill)?;
+            self.0.take();
         }
         Err(UserProgramError::NoProgram)
     }
 }
 
-#[derive(Debug, Display, Error)]
+#[derive(Debug, Display, Error, Clone, Copy)]
 pub enum UserProgramError {
     #[display(fmt = "Program failed to start")]
     FailedRun,
@@ -66,6 +85,10 @@ pub enum UserProgramError {
     FailedKill,
     #[display(fmt = "Running this programming language is not currently supported")]
     UnsupportedLanguage,
+    #[display(fmt = "Failed to acuqire lock on running program")]
+    FailedProgramLock,
+    #[display(fmt = "Failed to get output from the program")]
+    NoOutput,
 }
 
 impl error::ResponseError for UserProgramError {

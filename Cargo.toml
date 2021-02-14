@@ -3,6 +3,7 @@ name = "lsp_proxy"
 version = "0.1.0"
 authors = ["Ayomide Bamidele <ayoeze@hotmail.com>"]
 edition = "2018"
+license = "MIT OR Apache-2.0"
 
 [[bin]]
 path = "src/bin/main.rs"
@@ -16,7 +17,7 @@ clap = "2.33.3"
 actix-files = "0.5.0"
 mime = "0.3.16"
 env_logger = "0.8.2"
-tokio = { version = "0.2.22", features = ["process", "rt-core", "fs", "time"] }
+tokio = { version = "0.2.22", features = ["process", "rt-core", "fs"] }
 actix = "0.10.0"
 actix-web-actors = "3.0.0"
 serde_json = "1.0.60"
@@ -24,7 +25,7 @@ serde = { version = "1.0", features = ["derive"] }
 walkdir = "2"
 derive_more = "0.99"
 lsp-types = "0.86.0"
-
+futures-util = "0.3.12"
 [dev-dependencies]
 actix-rt = "1"
 reqwest = { version = "0.10.10", features = ["json"] }
