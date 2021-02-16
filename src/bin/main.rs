@@ -1,4 +1,5 @@
 use actix_web::web;
+use dotenv::dotenv;
 use lsp_proxy::{
     config::{LSArgs, Lang},
     language_server::server::start_lang_server,
@@ -18,6 +19,7 @@ fn get_tcp_listener(port: i32) -> TcpListener {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    dotenv().ok();
     let args = LSArgs::from_args();
     if !Path::new(&args.codebase_path).exists() {
         panic!("Directory does not exist!")

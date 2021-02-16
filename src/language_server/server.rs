@@ -58,7 +58,7 @@ impl Actor for LangServer {
     }
 }
 
-/// Handler for ws::Message message
+
 impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for LangServer {
     fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
         if let Ok(ws::Message::Text(text)) = msg {

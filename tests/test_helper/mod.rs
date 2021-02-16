@@ -5,6 +5,8 @@ use lsp_proxy::config::{LSArgs, Lang};
 pub const _COMMON_TEST_DIRECTORY: &str = "/home/ayomide/Development/LanguageServers/lsp-proxies/rust/actix-lsp-proxy/tests/example_code_repos/test-java-repo";
 pub const _COMMON_TEST_FILE: &str = "tests/example_code_repos/test-java-repo/src/Hello.java";
 pub const COMMON_TEST_LANG: Lang = lsp_proxy::config::Lang::Java;
+const TEST_JAVA_SERVER_PATH: &str = "/home/ayomide/Development/LanguageServers/Java/eclipse.jdt.ls/org.eclipse.jdt.ls.product/target/repository";
+
 
 fn setup_program_args(args: &LSArgs) {
     env::set_var("CODEBASE_PATH", &args.codebase_path);
@@ -20,6 +22,7 @@ pub fn spawn_app(codebase_path: &str, language: Lang) -> String {
         codebase_path: codebase_path.into(),
         port: port.into(),
         language,
+        lang_server_path: TEST_JAVA_SERVER_PATH.into()
     };
 
     setup_program_args(&args);
