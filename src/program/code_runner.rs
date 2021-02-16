@@ -50,7 +50,7 @@ pub async fn run_program_file(
         req.match_info()
             .query("filename")
             .parse()
-            .map_err(|_| FileSyncError::InternalError {
+            .map_err(|_| FileSyncError::BadClientData {
                 cause: "Error parsing request URL".to_string(),
             })?;
 

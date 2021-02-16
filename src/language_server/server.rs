@@ -3,7 +3,6 @@ use actix_web::{error::ErrorBadRequest, web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
 use serde_json::Value;
 use std::{
-    cell::Cell,
     process::Stdio,
     sync::{atomic::Ordering, Arc},
 };
@@ -22,7 +21,7 @@ const TEST_JAVA_SERVER_PATH: &str = "/home/ayomide/Development/LanguageServers/J
 
 pub struct LangServer {
     stdin: Arc<Mutex<ChildStdin>>,
-    stdout: Cell<ChildStdout>,
+    stdout: Option<ChildStdout>,
 }
 #[derive(Debug)]
 struct Line(String);
@@ -32,7 +31,7 @@ impl LangServer {
         let mut child = child.lock().unwrap();
         LangServer {
             stdin: Arc::new(Mutex::new(child.stdin.take().unwrap())),
-            stdout: Cell::new(child.stdout.take().unwrap()),
+            stdout: Some(child.stdout.take().unwrap()),
         }
     }
 }
@@ -50,14 +49,12 @@ impl Actor for LangServer {
 
     fn started(&mut self, ctx: &mut Self::Context) {
         /* Send the bytes received from stdout to ctx */
-        unsafe {
-            let stdout = &mut *self.stdout.as_ptr();
-            let reader = BufReader::new(stdout).lines();
-            ctx.add_stream(reader.map(|l| {
-                println!("{:?}", &l);
-                Ok(Line(l.expect("Not a line")))
-            }));
-        }
+        let stdout = self.stdout.take().unwrap();
+        let reader = BufReader::new(stdout).lines();
+        ctx.add_stream(reader.map(|l| {
+            println!("{:?}", &l);
+            Ok(Line(l.expect("Not a line")))
+        }));
     }
 }
 

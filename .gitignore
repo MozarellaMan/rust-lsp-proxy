@@ -58,3 +58,5 @@ dkms.conf
 tests/example_code_repos/test-java-repo/src/.metadata
 tests/example_code_repos/test-java-repo/jdt.ls-java-project
 tests/example_code_repos/test-java-repo/.metadata
+
+*.class
