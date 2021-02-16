@@ -3,6 +3,7 @@ use actix_web::{dev::Server, middleware::Logger, web::Data};
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use file_system::file_sync::{get_dir, get_file, get_root_uri};
 
+use language_server::server::to_language_server;
 use program::{
     code_runner::{add_program_input, kill_current_program, run_program_file},
     user_program::{UserProgram, UserProgramHandle},
@@ -59,7 +60,7 @@ pub fn run(
             )
             .route("/health", web::get().to(health_check))
             .data(child.clone())
-            .route("/ls", web::route().to(language_server::server::to_lsp))
+            .route("/ls", web::route().to(to_language_server))
     })
     .listen(listener)?
     .run();

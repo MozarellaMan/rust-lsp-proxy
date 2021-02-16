@@ -1,23 +1,36 @@
+use super::intercept::intercept_notification;
+use crate::AppState;
 use actix::{Actor, AsyncContext, StreamHandler};
 use actix_web::{error::ErrorBadRequest, web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
 use serde_json::Value;
-use std::{
-    process::Stdio,
-    sync::{atomic::Ordering, Arc},
-};
+use std::sync::{atomic::Ordering, Arc};
 use tokio::{
     io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
-    process::{Child, ChildStdin, ChildStdout, Command},
+    process::{Child, ChildStdin, ChildStdout},
     stream::StreamExt,
     sync::Mutex,
 };
 
-use crate::{config::Lang, AppState};
-
-use super::intercept::intercept_notification;
-
-const TEST_JAVA_SERVER_PATH: &str = "/home/ayomide/Development/LanguageServers/Java/eclipse.jdt.ls/org.eclipse.jdt.ls.product/target/repository";
+pub async fn to_language_server(
+    req: HttpRequest,
+    stream: web::Payload,
+    process: web::Data<Arc<std::sync::Mutex<Child>>>,
+    state: web::Data<AppState>,
+) -> Result<HttpResponse, Error> {
+    let session_started = state.ws_session_started.load(Ordering::Relaxed);
+    if !session_started {
+        let lang_server = LangServer::new(process.as_ref().to_owned());
+        let session = ws::start(lang_server, &req, stream);
+        println!("Language Server started\n{:?}", session);
+        state.ws_session_started.store(true, Ordering::Relaxed);
+        session
+    } else {
+        Err(ErrorBadRequest(
+            "Language server web socket session already started.",
+        ))
+    }
+}
 
 pub struct LangServer {
     stdin: Arc<Mutex<ChildStdin>>,
@@ -58,7 +71,6 @@ impl Actor for LangServer {
     }
 }
 
-
 impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for LangServer {
     fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
         if let Ok(ws::Message::Text(text)) = msg {
@@ -88,57 +100,5 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for LangServer {
             ctx.spawn(intercept_fut);
             ctx.spawn(lang_server_fut);
         }
-    }
-}
-
-pub fn start_lang_server(lang: Lang, file_path: String) -> Option<Child> {
-    match lang {
-        Lang::Java => Some(
-            Command::new("java")
-                .current_dir(TEST_JAVA_SERVER_PATH)
-                .arg("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=1044")
-                .arg("-Declipse.application=org.eclipse.jdt.ls.core.id1")
-                .arg("-Dosgi.bundles.defaultStartLevel=4")
-                .arg("-Declipse.product=org.eclipse.jdt.ls.core.product")
-                .arg("-Dlog.level=ALL")
-                .arg("-noverify")
-                .arg("-Xmx1G")
-                .arg("-jar")
-                .arg("./plugins/org.eclipse.equinox.launcher_1.6.0.v20200915-1508.jar")
-                .arg("-configuration")
-                .arg("./config_linux")
-                .arg("-data")
-                .arg(file_path)
-                .arg("--add-modules=ALL-SYSTEM")
-                .arg("--add-opens")
-                .arg("java.base/java.util=ALL-UNNAMED")
-                .arg("--add-opens")
-                .arg("java.base/java.lang=ALL-UNNAMED")
-                .stdin(Stdio::piped())
-                .stdout(Stdio::piped())
-                .spawn()
-                .expect("failed to execute"),
-        ),
-        Lang::C => None,
-    }
-}
-
-pub async fn to_lsp(
-    req: HttpRequest,
-    stream: web::Payload,
-    process: web::Data<Arc<std::sync::Mutex<Child>>>,
-    state: web::Data<AppState>,
-) -> Result<HttpResponse, Error> {
-    let session_started = state.ws_session_started.load(Ordering::Relaxed);
-    if !session_started {
-        let lang_server = LangServer::new(process.as_ref().to_owned());
-        let session = ws::start(lang_server, &req, stream);
-        println!("Language Server started\n{:?}", session);
-        state.ws_session_started.store(true, Ordering::Relaxed);
-        session
-    } else {
-        Err(ErrorBadRequest(
-            "Language server web socket session already started.",
-        ))
     }
 }

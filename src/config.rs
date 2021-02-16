@@ -4,7 +4,7 @@ use structopt::StructOpt;
 #[derive(StructOpt, Debug)]
 #[structopt(name = "Language Server Proxy", about = "A language server proxy")]
 pub struct LSArgs {
-    #[structopt(short,long, env)]
+    #[structopt(short, long, env)]
     pub codebase_path: String,
 
     #[structopt(short, long, default_value = "8001", env)]
@@ -14,7 +14,7 @@ pub struct LSArgs {
     pub language: Lang,
 
     #[structopt(short = "s", long, env)]
-    pub lang_server_path: String, 
+    pub lang_server_path: String,
 }
 
 arg_enum! {

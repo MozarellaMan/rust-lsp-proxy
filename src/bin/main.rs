@@ -2,7 +2,7 @@ use actix_web::web;
 use dotenv::dotenv;
 use lsp_proxy::{
     config::{LSArgs, Lang},
-    language_server::server::start_lang_server,
+    language_server::server_runners::start_lang_server,
 };
 use lsp_proxy::{run, AppState};
 use std::{
@@ -37,6 +37,7 @@ async fn main() -> std::io::Result<()> {
         user_program: Arc::new(Mutex::new(None)),
         user_program_handle: Arc::new(Mutex::new(None)),
     });
+
     run(
         get_tcp_listener(args.port),
         Arc::new(std::sync::Mutex::new(child)),
