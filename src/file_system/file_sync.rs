@@ -1,4 +1,8 @@
-use crate::{get_ls_args, AppState};
+use super::{
+    file_sync_msg::{map_io_err, FileSyncError, FileSyncMsg, FileSyncType},
+    files::{build_file_tree, is_ignored, FileNode},
+};
+use crate::{config::get_ls_args, AppState};
 use actix_files::NamedFile;
 use actix_web::{
     http::ContentEncoding,
@@ -8,11 +12,6 @@ use actix_web::{
 use std::path::{Path, PathBuf};
 use tokio::{fs::OpenOptions, io::AsyncWriteExt};
 use walkdir::{DirEntry, WalkDir};
-
-use super::{
-    file_sync_msg::{map_io_err, FileSyncError, FileSyncMsg, FileSyncType},
-    files::{build_file_tree, is_ignored, FileNode},
-};
 
 pub async fn get_root_uri(state: web::Data<AppState>) -> impl Responder {
     let uri = format!("file:///{}", &state.workspace_dir);

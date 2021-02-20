@@ -1,9 +1,11 @@
+use crate::{
+    config::{self, get_ls_args},
+    file_system::file_sync_msg::FileSyncError,
+    AppState,
+};
 use actix_web::{web, HttpRequest, HttpResponse, Result};
 use std::path::{Path, PathBuf};
-
 use tokio::stream::StreamExt;
-
-use crate::{config, file_system::file_sync_msg::FileSyncError, get_ls_args, AppState};
 
 use super::{runners::run_java_prog, user_program::UserProgramError};
 
@@ -18,7 +20,6 @@ pub async fn add_program_input(
         let chunk = chunk.map_err(|_| FileSyncError::InternalError {
             cause: "could not read input".to_string(),
         })?;
-        // limit max size of in-memory payload
         if (body.len() + chunk.len()) > MAX_INPUT_SIZE {
             return Err(FileSyncError::BadClientData {
                 cause: "overflow".to_string(),

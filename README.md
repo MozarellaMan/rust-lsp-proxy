@@ -1,6 +1,6 @@
 # Language Server Proxy
 
-This program will act as an easy-to-use, remote, middleman between any Language Server and your own Language Server compliant client.
+This program aims to act as an easy-to-use, remote, middleman between any Language Server and your own Language Server compliant client.
 
 Your code and language server are installed on your machine, enabling any mobile app or consumer of the proxy to immediately support your machine's toolchain.
 
@@ -61,6 +61,7 @@ OPTIONS:
 #### Build Dependencies
 
 - [Rust](https://www.rust-lang.org/learn/get-started) (this will also install Cargo, the Rust build tool)
+  - At *least* v1.46
 
 #### Build Instructions
 

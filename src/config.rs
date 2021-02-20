@@ -24,3 +24,7 @@ arg_enum! {
         C
     }
 }
+
+pub fn get_ls_args() -> LSArgs {
+    LSArgs::from_args()
+}

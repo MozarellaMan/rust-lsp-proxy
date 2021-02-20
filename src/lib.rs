@@ -2,8 +2,7 @@ use crate::config::LSArgs;
 use actix_web::{dev::Server, middleware::Logger, web::Data};
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use file_system::file_sync::{get_dir, get_file, get_root_uri};
-
-use language_server::server::to_language_server;
+use language_server::to_language_server;
 use program::{
     code_runner::{add_program_input, kill_current_program, run_program_file},
     user_program::{UserProgram, UserProgramHandle},
@@ -19,14 +18,6 @@ pub mod config;
 pub mod file_system;
 pub mod language_server;
 pub mod program;
-
-async fn health_check() -> impl Responder {
-    HttpResponse::Ok()
-}
-
-pub fn get_ls_args() -> LSArgs {
-    LSArgs::from_args()
-}
 
 pub struct AppState {
     pub ws_session_started: AtomicBool,
@@ -65,6 +56,10 @@ pub fn run(
     .listen(listener)?
     .run();
     Ok(server)
+}
+
+async fn health_check() -> impl Responder {
+    HttpResponse::Ok()
 }
 
 pub fn test_run(listener: TcpListener) -> Result<Server, std::io::Error> {
