@@ -10,6 +10,8 @@ Endpoints in the proxy can be used to run and stop the running of code, which is
 
 Made primarily with Rust, Actix Web, and Tokio.
 
+Have a look at the [Architecture](ARCHITECTURE.md) document for an overview of the code.
+
 ## Features
 
 - Remote file synchronization
@@ -31,7 +33,10 @@ Made primarily with Rust, Actix Web, and Tokio.
   - Currently only the [Eclipse Java Language Server](https://github.com/eclipse/eclipse.jdt.ls) is officially supported
     - At *least* Java 11 to run the server
     - You could build it yourself, or download the *latest* (at least 0.60, but old may work) binary from their [releases](https://download.eclipse.org/jdtls/snapshots/?d) (**recommended**)
-- a Language Server Proxy binary (you can find latest releases on this repo)
+- a Language Server Proxy binary (you can find latest [releases here](https://github.com/MozarellaMan/rust-lsp-proxy/releases))
+  - recommended instead of building as it's quicker
+  - (*recommended*) extract and run .exe in a terminal OR add unzipped folder to PATH
+  - Linux and Windows binaries available, for Mac you will need to build it yourself for now. (Instructions below)
 
 #### Program Instructions
 
