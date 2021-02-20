@@ -35,6 +35,7 @@ Made primarily with Rust, Actix Web, and Tokio.
 
 #### Program Instructions
 
+```default
 USAGE:
     lsp_proxy.exe [OPTIONS] --codebase-path --lang-server-path  --language
 
@@ -48,6 +49,7 @@ OPTIONS:
 
     -l, --language <language>
     -p, --port <port> [default: 8001]
+```
 
 - `codebase-path` is the path to the directory you want the language server to run on
 - `lang-server-path` is the path to the language server binary (currently only Java supported)
