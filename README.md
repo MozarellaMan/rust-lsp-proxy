@@ -47,8 +47,8 @@ OPTIONS:
     -c, --codebase-path
     -s, --lang-server-path
 
-    -l, --language <language>
-    -p, --port <port> [default: 8001]
+    -l, --language
+    -p, --port [default: 8001]
 ```
 
 - `codebase-path` is the path to the directory you want the language server to run on
