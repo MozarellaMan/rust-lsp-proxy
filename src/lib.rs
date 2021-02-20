@@ -1,4 +1,4 @@
-use crate::config::LSArgs;
+use crate::config::LsArgs;
 use actix_web::{dev::Server, middleware::Logger, web::Data};
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use file_system::file_sync::{get_dir, get_file, get_root_uri};
@@ -33,7 +33,7 @@ pub fn run(
     child: Arc<std::sync::Mutex<Child>>,
     state: Data<AppState>,
 ) -> Result<Server, std::io::Error> {
-    println!("Program config: {:?}", LSArgs::from_args());
+    println!("Program config: {:?}", LsArgs::from_args());
     std::env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
     let server = HttpServer::new(move || {
@@ -63,7 +63,7 @@ async fn health_check() -> impl Responder {
 }
 
 pub fn test_run(listener: TcpListener) -> Result<Server, std::io::Error> {
-    println!("Program config: {:?}", LSArgs::from_args());
+    println!("Program config: {:?}", LsArgs::from_args());
     std::env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
     let server = HttpServer::new(|| {

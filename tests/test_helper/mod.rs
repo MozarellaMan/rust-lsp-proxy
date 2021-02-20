@@ -1,13 +1,13 @@
 use std::{env, net::TcpListener};
 
-use lsp_proxy::config::{LSArgs, Lang};
+use lsp_proxy::config::{LsArgs, Lang};
 
 pub const _COMMON_TEST_DIRECTORY: &str = "/home/ayomide/Development/LanguageServers/lsp-proxies/rust/actix-lsp-proxy/tests/example_code_repos/test-java-repo";
 pub const _COMMON_TEST_FILE: &str = "tests/example_code_repos/test-java-repo/src/Hello.java";
 pub const COMMON_TEST_LANG: Lang = lsp_proxy::config::Lang::Java;
 const TEST_JAVA_SERVER_PATH: &str = "/home/ayomide/Development/LanguageServers/Java/eclipse.jdt.ls/org.eclipse.jdt.ls.product/target/repository";
 
-fn setup_program_args(args: &LSArgs) {
+fn setup_program_args(args: &LsArgs) {
     env::set_var("CODEBASE_PATH", &args.codebase_path);
     env::set_var("PORT", &args.port.to_string());
     env::set_var("LANGUAGE", &args.language.to_string());
@@ -17,7 +17,7 @@ pub fn spawn_app(codebase_path: &str, language: Lang) -> String {
     let listener = TcpListener::bind("127.0.0.1:0").expect("failed to bind random port");
     // retrieve OS assigned port
     let port = listener.local_addr().unwrap().port();
-    let args = LSArgs {
+    let args = LsArgs {
         codebase_path: codebase_path.into(),
         port: port.into(),
         language,

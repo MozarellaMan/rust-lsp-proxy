@@ -3,7 +3,7 @@ use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "Language Server Proxy", about = "A language server proxy")]
-pub struct LSArgs {
+pub struct LsArgs {
     #[structopt(short, long, env)]
     pub codebase_path: String,
 
@@ -25,6 +25,6 @@ arg_enum! {
     }
 }
 
-pub fn get_ls_args() -> LSArgs {
-    LSArgs::from_args()
+pub fn get_ls_args() -> LsArgs {
+    LsArgs::from_args()
 }
