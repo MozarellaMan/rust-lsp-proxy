@@ -10,7 +10,7 @@ Endpoints in the proxy can be used to run and stop the running of code, which is
 
 Made primarily with Rust, Actix Web, and Tokio.
 
-Have a look at the [Architecture](ARCHITECTURE.md) document for an overview of the code.
+Have a look at the [Architecture](/docs/ARCHITECTURE.md) document for an overview of the code.
 
 ## Features
 
@@ -18,9 +18,12 @@ Have a look at the [Architecture](ARCHITECTURE.md) document for an overview of t
 - Websocket connection to Language Server Protocol compliant server
 - Remote code compilation and execution
 - Remote input to running code via proxy endpoint
+- Proxy is thin and lightweight in resource usage
 
-## Missing Features
+## Currently Unimplemented
 
+- Other common language servers
+- Remote file deletion
 - Security (this has mainly been targeted at private usage)
 
 ## How to use

@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 use walkdir::DirEntry;
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct FileNode {
     pub path: String,
     pub name: String,
@@ -60,7 +59,7 @@ pub fn build_file_tree(node: &mut FileNode, parts: &[DirEntry], depth: usize) {
                 node.add_child(d);
                 match node.find_child(item.file_name().to_str().unwrap().to_string()) {
                     Some(d2) => d2,
-                    None => panic!("Got here!"),
+                    None => panic!("error building directory tree"),
                 }
             }
         };

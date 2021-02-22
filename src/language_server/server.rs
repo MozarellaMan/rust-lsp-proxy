@@ -55,7 +55,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for LangServer {
             let stdin = self.stdin.clone();
 
             let msg = serde_json::from_str::<Value>(&text);
-            println!("StartClient\n{}\nEndClient", &text);
+            println!("\nStartClient\n{}\nEndClient\n", &text);
 
             let intercept_fut = async move {
                 if let Ok(msg) = msg {

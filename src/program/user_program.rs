@@ -43,10 +43,7 @@ impl UserProgram {
         Err(UserProgramError::NoProgram)
     }
 
-    pub async fn read_user_program_input(
-        &mut self,
-        inputs: &[String],
-    ) -> Result<(), UserProgramError> {
+    pub async fn read_input(&mut self, inputs: &[String]) -> Result<(), UserProgramError> {
         if let Some(child) = &mut self.0 {
             if !inputs.is_empty() {
                 if let Some(stdin) = &mut child.stdin {
@@ -62,14 +59,6 @@ impl UserProgram {
         } else {
             Err(UserProgramError::NoProgram)
         }
-    }
-
-    pub async fn stop(&mut self) -> Result<(), UserProgramError> {
-        if let Some(child) = &mut self.0.take() {
-            child.kill().map_err(|_| UserProgramError::FailedKill)?;
-            self.0.take();
-        }
-        Err(UserProgramError::NoProgram)
     }
 }
 

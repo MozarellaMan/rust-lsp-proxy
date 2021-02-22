@@ -1,4 +1,4 @@
-use crate::config::{LsArgs, Lang};
+use crate::config::{Lang, LsArgs};
 use std::{env, fs::read_dir, path::Path, process::Stdio};
 use structopt::StructOpt;
 use tokio::process::{Child, Command};
@@ -10,7 +10,7 @@ pub fn start_lang_server(lang: Lang, file_path: String) -> Option<Child> {
     }
 }
 
-pub fn java_server(codebase_path: &str) -> Option<Child> {
+fn java_server(codebase_path: &str) -> Option<Child> {
     let args = LsArgs::from_args();
     // need to find a specific jar file for launching the jdt server
     let path = Path::new(&args.lang_server_path);

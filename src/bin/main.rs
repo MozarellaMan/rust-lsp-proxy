@@ -1,7 +1,7 @@
 use actix_web::web;
 use dotenv::dotenv;
 use lsp_proxy::{
-    config::{LsArgs, Lang},
+    config::{Lang, LsArgs},
     language_server::server_runners::start_lang_server,
 };
 use lsp_proxy::{run, AppState};

@@ -1,6 +1,6 @@
 use std::{env, net::TcpListener};
 
-use lsp_proxy::config::{LsArgs, Lang};
+use lsp_proxy::config::{Lang, LsArgs};
 
 pub const _COMMON_TEST_DIRECTORY: &str = "/home/ayomide/Development/LanguageServers/lsp-proxies/rust/actix-lsp-proxy/tests/example_code_repos/test-java-repo";
 pub const _COMMON_TEST_FILE: &str = "tests/example_code_repos/test-java-repo/src/Hello.java";

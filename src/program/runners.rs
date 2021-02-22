@@ -38,7 +38,7 @@ pub async fn run_java_prog(
             let user_program = user_program.as_mut().unwrap();
 
             if let Ok(inputs) = state.program_input.try_lock() {
-                user_program.read_user_program_input(&inputs).await?
+                user_program.read_input(&inputs).await?
             }
 
             let run_output = user_program
