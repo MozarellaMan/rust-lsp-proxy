@@ -47,6 +47,7 @@ pub async fn update_file(path: PathBuf, update: FileSyncMsg) -> Result<(), FileS
     match update.reason {
         FileSyncType::New => {
             if path.is_dir() {
+                println!("creating!");
                 let path = path.join(&update.name);
                 let _file = tokio::fs::File::create(&path).await.map_err(map_io_err)?;
             } else {

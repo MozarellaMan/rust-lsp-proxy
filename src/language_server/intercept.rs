@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use lsp_types::{CreateFilesParams, DidChangeTextDocumentParams, Url};
 use serde_json::Value;
 
@@ -7,6 +9,17 @@ use crate::file_system::{
 };
 
 type SerializerError = serde_json::error::Error;
+
+pub async fn intercept_notification(msg: Value) -> Result<(), SerializerError> {
+    if let Value::String(method) = &msg["method"] {
+        if method.starts_with("textDocument/did") || method.starts_with("workspace/didCreate") {
+            intercept_text_sync(&msg, method).await?;
+        }
+    } else {
+        println!("not method! : {:?} ", &msg);
+    }
+    Ok(())
+}
 
 async fn intercept_text_sync(msg: &Value, method: &str) -> Result<(), SerializerError> {
     if let Value::Object(_) = &msg["params"] {
@@ -20,8 +33,8 @@ async fn intercept_text_sync(msg: &Value, method: &str) -> Result<(), Serializer
                 let did_create: CreateFilesParams = serde_json::from_value(msg["params"].clone())?;
                 intercept_did_create(did_create).await;
             }
-            _ => {
-                println!("not recongized!")
+            _unrecog => {
+                println!("not recongized: {}", _unrecog);
             }
         }
     }
@@ -33,33 +46,27 @@ async fn intercept_did_create(params: CreateFilesParams) {
     for creation in file_creates.iter() {
         let uri = Url::parse(&creation.uri);
         if let Ok(url) = uri {
-            let path = url.to_file_path();
+            let mut path = Path::new(url.as_str()).to_path_buf();
             let file_name = url.path_segments().map(|s| s.last()).unwrap_or_default();
-            if let (Ok(mut path), Some(name)) = (path, file_name) {
+            if let Some(name) = file_name {
                 let file_sync_msg = FileSyncMsg {
                     reason: FileSyncType::New,
                     name: name.to_string(),
                     text: None,
                 };
                 path.pop();
-                if let Err(err) = update_file(path, file_sync_msg).await {
-                    println!("could not update! {}", err)
+                if let Err(err) = update_file(path.clone(), file_sync_msg).await {
+                    println!("could not update! {}", err);
+                } else {
+                    println!("Created file: {:?}{:?}", path,file_name);
                 }
+            } else {
+                println!("could not create path:{:?},{:?}", path, file_name );
             }
         }
     }
 }
 
-pub async fn intercept_notification(msg: Value) -> Result<(), SerializerError> {
-    if let Value::String(method) = &msg["method"] {
-        if method.starts_with("textDocument/did") || method.starts_with("workspace/didCreate") {
-            intercept_text_sync(&msg, method).await?;
-        }
-    } else {
-        println!("not method! : {:?} ", &msg);
-    }
-    Ok(())
-}
 
 async fn intercept_did_update(params: DidChangeTextDocumentParams) {
     let uri = params.text_document.uri;
