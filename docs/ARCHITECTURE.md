@@ -27,11 +27,6 @@ The proxy aims to always stay running after a websocket connection to the langua
 - `/code/run`  
   A GET request to this endpoint, followed by the path to the specific file relative to the root of the codebase, will attempt to compile and/or run the source file located at the path. The proxy currently chooses how to run the source file based on the `language` specified in the proxy's program arguments.  
   The proxy will return the source file's output and/or errors. An error is return if the proxy could not start a process with the specified source file. Only source one file can be run at a time. [code_runner.rs](../src/program/code_runner.rs), [runners.rs](../src/program/runners.rs), [user_program.rs](../src/program/user_program.rs)
-- `/code/kill`  
-  A GET request to this endpoint will attempt to kill any running user program on the proxy. An error is returned if a request is sent when there is no user program currently running. [code_runner.rs](../src/program/code_runner.rs), [user_program.rs](../src/program/user_program.rs)
-- `/code/input`  
-  A POST request to this endpoint, the proxy will read the body of the request as a string and seperate it by newlines. This input is then stored on the proxy in memory to be piped to the stdin of a user program if it is run. A request to this endpoint will always replace any previous input strings stored on the proxy.
-  [code_runner.rs](../src/program/code_runner.rs), [user_program.rs](../src/program/user_program.rs)
 - `/health`  
   A GET request to this endpoint will return 200 if the proxy is running.
   [lib.rs](../src/lib.rs)
@@ -52,4 +47,4 @@ This struct is used to serialize and deserialize the directory being used with t
 
 ### `UserProgram` [user_program.rs](../src/program/user_program.rs)
 
-This struct simply wraps around the child process that is started by making a request to the `/code/run` endpoint. The method `wait_with_output` waits for the program to run and produce output. The method `read_input` writes input into the child process's stdin. This struct is also coupled with an error type `UserProgramError` to encapsulate the types of errors that could occur when attempting to start, kill or write to the child process.
+This struct encaspualtes the WebSocket created when a program on the proxy is run.

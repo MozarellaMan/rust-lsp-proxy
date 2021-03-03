@@ -2,7 +2,6 @@ use actix::{Actor, AsyncContext, StreamHandler};
 use actix_web::{dev::HttpResponseBuilder, error, http::header, http::StatusCode, HttpResponse};
 use actix_web_actors::ws;
 use derive_more::{Display, Error};
-use futures_util::future::{AbortHandle, Abortable};
 use std::sync::Arc;
 use tokio::{
     io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
@@ -19,8 +18,6 @@ pub struct UserProgram {
     stdin: Arc<Mutex<Option<ChildStdin>>>,
     stdout: Option<ChildStdout>,
 }
-
-pub type UserProgramHandle = AbortHandle;
 
 impl StreamHandler<Result<Line, ws::ProtocolError>> for UserProgram {
     fn handle(&mut self, msg: Result<Line, ws::ProtocolError>, ctx: &mut Self::Context) {
@@ -78,29 +75,6 @@ impl UserProgram {
             stdin: Arc::new(Mutex::new(stdin)),
             stdout,
         }
-    }
-
-    pub async fn spawn(
-        &mut self,
-        handle_state: &Mutex<Option<UserProgramHandle>>,
-    ) -> Result<(), UserProgramError> {
-        if let Some(child) = self.child.take() {
-            let (abort_handle, abort_registration) = AbortHandle::new_pair();
-
-            let user_prog_future = Abortable::new(
-                async { child.await.map_err(|_| UserProgramError::NoOutput) },
-                abort_registration,
-            );
-
-            if let Ok(handle) = &mut handle_state.try_lock() {
-                handle.replace(abort_handle.clone());
-            }
-
-            user_prog_future
-                .await
-                .map_err(|_| UserProgramError::FailedRun)??;
-        }
-        Err(UserProgramError::NoProgram)
     }
 }
 

@@ -40,6 +40,8 @@ pub async fn run_java_prog(
         if user_program.is_some() {
             let user_program = ws::start(user_program.take().unwrap(), &req, stream)
                 .map_err(|_| UserProgramError::FailedRun)?;
+
+            
             return Ok(user_program);
         }
     } else {

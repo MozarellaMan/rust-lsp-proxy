@@ -4,8 +4,8 @@ use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use file_system::file_sync::{get_dir, get_file, get_root_uri};
 use language_server::to_language_server;
 use program::{
-    code_runner::{add_program_input, kill_current_program, run_program_file},
-    user_program::{UserProgram, UserProgramHandle},
+    code_runner::run_program_file,
+    user_program::UserProgram,
 };
 use std::{
     net::TcpListener,
@@ -28,7 +28,6 @@ pub struct AppState {
     pub workspace_dir: String,
     pub program_input: Mutex<Vec<String>>,
     pub user_program: Arc<Mutex<Option<UserProgram>>>,
-    pub user_program_handle: Arc<Mutex<Option<UserProgramHandle>>>,
 }
 
 pub fn run(
@@ -49,8 +48,6 @@ pub fn run(
                     .route("/directory", web::get().to(get_dir))
                     .route("/directory/root", web::get().to(get_root_uri))
                     .route("/run/{filename:.*}", web::get().to(run_program_file))
-                    .route("/kill", web::get().to(kill_current_program))
-                    .route("/input", web::post().to(add_program_input)),
             )
             .route("/health", web::get().to(health_check))
             .data(child.clone())
