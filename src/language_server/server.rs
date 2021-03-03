@@ -1,3 +1,5 @@
+use crate::Line;
+
 use super::intercept::intercept_notification;
 use actix::{Actor, AsyncContext, StreamHandler};
 use actix_web_actors::ws;
@@ -14,15 +16,12 @@ pub struct LangServer {
     stdin: Arc<Mutex<ChildStdin>>,
     stdout: Option<ChildStdout>,
 }
-#[derive(Debug)]
-struct Line(String);
-
 impl LangServer {
     pub fn new(child: Arc<std::sync::Mutex<Child>>) -> Self {
         let mut child = child.lock().unwrap();
         LangServer {
             stdin: Arc::new(Mutex::new(child.stdin.take().unwrap())),
-            stdout: Some(child.stdout.take().unwrap()),
+            stdout: child.stdout.take(),
         }
     }
 }
@@ -43,8 +42,12 @@ impl Actor for LangServer {
         let stdout = self.stdout.take().unwrap();
         let reader = BufReader::new(stdout).lines();
         ctx.add_stream(reader.map(|l| {
-            println!("{:?}", &l);
-            Ok(Line(l.expect("Not a line")))
+            if let Ok(l) = l {
+                println!("{}", &l);
+                Ok(Line(l))
+            } else {
+                Ok(Line("Failed to read from lanuage server".to_string()))
+            }
         }));
     }
 }

@@ -12,7 +12,8 @@ type SerializerError = serde_json::error::Error;
 
 pub async fn intercept_notification(msg: Value) -> Result<(), SerializerError> {
     if let Value::String(method) = &msg["method"] {
-        if method.starts_with("textDocument/did") || method.starts_with("workspace/didCreate") {
+        if method.starts_with("textDocument/didChange") || method.starts_with("workspace/didCreate")
+        {
             intercept_text_sync(&msg, method).await?;
         }
     } else {
@@ -58,15 +59,14 @@ async fn intercept_did_create(params: CreateFilesParams) {
                 if let Err(err) = update_file(path.clone(), file_sync_msg).await {
                     println!("could not update! {}", err);
                 } else {
-                    println!("Created file: {:?}{:?}", path,file_name);
+                    println!("Created file: {:?}{:?}", path, file_name);
                 }
             } else {
-                println!("could not create path:{:?},{:?}", path, file_name );
+                println!("could not create path:{:?},{:?}", path, file_name);
             }
         }
     }
 }
-
 
 async fn intercept_did_update(params: DidChangeTextDocumentParams) {
     let uri = params.text_document.uri;

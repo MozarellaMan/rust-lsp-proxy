@@ -20,13 +20,14 @@ fn get_tcp_listener(port: i32) -> TcpListener {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
+    let tmp_dir = tempfile::Builder::new().prefix("lsp-proxy").tempdir()?;
     let args = LsArgs::from_args();
     if !Path::new(&args.codebase_path).exists() {
         panic!("Directory does not exist!")
     }
     let path: String = args.codebase_path;
 
-    let child = start_lang_server(Lang::Java, path.clone()).unwrap();
+    let child = start_lang_server(Lang::Java, tmp_dir.path()).unwrap();
     println!("Listening on {} ... 🚀", args.port);
 
     let state = web::Data::new(AppState {

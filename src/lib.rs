@@ -18,6 +18,9 @@ pub mod config;
 pub mod file_system;
 pub mod language_server;
 pub mod program;
+/// newtype for lines from websocket
+#[derive(Debug)]
+struct Line(String);
 
 pub struct AppState {
     pub ws_session_started: AtomicBool,

@@ -1,64 +1,106 @@
+use actix::{Actor, AsyncContext, StreamHandler};
 use actix_web::{dev::HttpResponseBuilder, error, http::header, http::StatusCode, HttpResponse};
+use actix_web_actors::ws;
 use derive_more::{Display, Error};
-use futures_util::{
-    future::{AbortHandle, Abortable},
-    TryFutureExt,
+use futures_util::future::{AbortHandle, Abortable};
+use std::sync::Arc;
+use tokio::{
+    io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
+    process::{Child, ChildStdin, ChildStdout},
+    stream::StreamExt,
+    sync::Mutex,
 };
-use std::process::Output;
-use tokio::{io::AsyncWriteExt, process::Child, sync::Mutex};
+
+use crate::Line;
 
 #[derive(Debug)]
-pub struct UserProgram(pub Option<Child>);
+pub struct UserProgram {
+    child: Option<Child>,
+    stdin: Arc<Mutex<Option<ChildStdin>>>,
+    stdout: Option<ChildStdout>,
+}
 
 pub type UserProgramHandle = AbortHandle;
 
+impl StreamHandler<Result<Line, ws::ProtocolError>> for UserProgram {
+    fn handle(&mut self, msg: Result<Line, ws::ProtocolError>, ctx: &mut Self::Context) {
+        if let Ok(line) = msg {
+            ctx.text(line.0)
+        }
+    }
+}
+
+impl Actor for UserProgram {
+    type Context = ws::WebsocketContext<Self>;
+
+    fn started(&mut self, ctx: &mut Self::Context) {
+        /* Send the bytes received from stdout to ctx */
+        let stdout = self.stdout.take().unwrap();
+        let reader = BufReader::new(stdout).lines();
+        ctx.add_stream(reader.map(|l| {
+            if let Ok(l) = l {
+                Ok(Line(l))
+            } else {
+                Ok(Line("Failed to read from user program".to_string()))
+            }
+        }));
+    }
+}
+
+impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for UserProgram {
+    fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
+        if let Ok(ws::Message::Text(text)) = msg {
+            let stdin = self.stdin.clone();
+            let user_program_fut = async move {
+                let mut stdin = stdin.lock().await;
+                if stdin.is_some() {
+                    let stdin = stdin.as_mut().unwrap();
+                    let text = format!("{}\n", text);
+                    if let Err(er) = stdin.write_all(&text.as_bytes()).await {
+                        eprintln!("Error writing to program! {:?}", er);
+                    }
+                    stdin.flush();
+                }
+            };
+            let user_program_fut = actix::fut::wrap_future(user_program_fut);
+            ctx.spawn(user_program_fut);
+        }
+    }
+}
+
 impl UserProgram {
-    pub async fn wait_with_output(
+    pub fn start(child: Child) -> Self {
+        let mut child = child;
+        let stdin = child.stdin.take();
+        let stdout = child.stdout.take();
+        UserProgram {
+            child: Some(child),
+            stdin: Arc::new(Mutex::new(stdin)),
+            stdout,
+        }
+    }
+
+    pub async fn spawn(
         &mut self,
         handle_state: &Mutex<Option<UserProgramHandle>>,
-    ) -> Result<Vec<u8>, UserProgramError> {
-        if let Some(child) = self.0.take() {
+    ) -> Result<(), UserProgramError> {
+        if let Some(child) = self.child.take() {
             let (abort_handle, abort_registration) = AbortHandle::new_pair();
-            let run_output = Abortable::new(
-                child
-                    .wait_with_output()
-                    .map_err(|_| UserProgramError::NoOutput),
+
+            let user_prog_future = Abortable::new(
+                async { child.await.map_err(|_| UserProgramError::NoOutput) },
                 abort_registration,
             );
 
             if let Ok(handle) = &mut handle_state.try_lock() {
                 handle.replace(abort_handle.clone());
             }
-            let run_output: Output = run_output
+
+            user_prog_future
                 .await
                 .map_err(|_| UserProgramError::FailedRun)??;
-
-            let output: Vec<u8> = run_output
-                .stdout
-                .into_iter()
-                .chain(run_output.stderr.into_iter())
-                .collect();
-            return Ok(output);
         }
         Err(UserProgramError::NoProgram)
-    }
-
-    pub async fn read_input(&mut self, inputs: &[String]) -> Result<(), UserProgramError> {
-        if let Some(child) = &mut self.0 {
-            if !inputs.is_empty() {
-                if let Some(stdin) = &mut child.stdin {
-                    for input in inputs.iter() {
-                        if let Err(er) = stdin.write_all(&input.as_bytes()).await {
-                            eprintln!("Error writing to child process {:?}", er);
-                        }
-                        stdin.flush();
-                    }
-                }
-            }
-            Ok(())
-        } else {
-            Err(UserProgramError::NoProgram)
-        }
     }
 }
 

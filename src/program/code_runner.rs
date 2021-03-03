@@ -45,6 +45,7 @@ pub async fn add_program_input(
 
 pub async fn run_program_file(
     req: HttpRequest,
+    stream: web::Payload,
     state: web::Data<AppState>,
 ) -> Result<HttpResponse> {
     let path: PathBuf =
@@ -61,7 +62,7 @@ pub async fn run_program_file(
     }
 
     let output = match &state.lang {
-        config::Lang::Java => run_java_prog(state, file_path, path).await?,
+        config::Lang::Java => run_java_prog(req, stream, state, file_path, path).await?,
         config::Lang::C => return Err(UserProgramError::UnsupportedLanguage.into()),
     };
 

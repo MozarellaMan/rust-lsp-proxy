@@ -3,14 +3,16 @@ use std::{env, fs::read_dir, path::Path, process::Stdio};
 use structopt::StructOpt;
 use tokio::process::{Child, Command};
 
-pub fn start_lang_server(lang: Lang, file_path: String) -> Option<Child> {
+/// Runs a language server child process, according to the language passed into the function
+pub fn start_lang_server(lang: Lang, temp_files_path: &Path) -> Option<Child> {
     match lang {
-        Lang::Java => java_server(&file_path),
+        Lang::Java => java_server(&temp_files_path),
         Lang::C => None,
     }
 }
 
-fn java_server(codebase_path: &str) -> Option<Child> {
+/// Starts a JDT language server process
+fn java_server(temp_files_path: &Path) -> Option<Child> {
     let args = LsArgs::from_args();
     // need to find a specific jar file for launching the jdt server
     let path = Path::new(&args.lang_server_path);
@@ -52,7 +54,7 @@ fn java_server(codebase_path: &str) -> Option<Child> {
                 .arg("-configuration")
                 .arg(config)
                 .arg("-data")
-                .arg(codebase_path)
+                .arg(temp_files_path)
                 .arg("--add-modules=ALL-SYSTEM")
                 .arg("--add-opens")
                 .arg("java.base/java.util=ALL-UNNAMED")
