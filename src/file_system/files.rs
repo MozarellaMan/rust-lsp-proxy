@@ -67,10 +67,11 @@ pub fn build_file_tree(node: &mut FileNode, parts: &[DirEntry], depth: usize) {
     }
 }
 
+/// Ignores class files and dot directories by default
 pub fn is_ignored(entry: &DirEntry) -> bool {
     entry
         .file_name()
         .to_str()
-        .map(|s| s.starts_with('.') || s.starts_with("jdt") || s.ends_with(".class"))
+        .map(|s| s.starts_with('.') || s.ends_with(".class"))
         .unwrap_or(false)
 }
