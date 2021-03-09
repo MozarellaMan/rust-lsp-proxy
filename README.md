@@ -26,7 +26,7 @@ Have a look at the [Architecture](/docs/ARCHITECTURE.md) document for an overvie
 - Remote file deletion
 - Security (this has mainly been targeted at private usage)
 
-## Example Usage
+## Example Client
 
 <img src="https://user-images.githubusercontent.com/48062697/110399225-5e7d6980-806d-11eb-8d69-27befc1f67a9.png" width="280">
 
