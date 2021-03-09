@@ -62,6 +62,7 @@ async fn health_check() -> impl Responder {
     HttpResponse::Ok()
 }
 
+/// Run the server for tests
 pub fn test_run(listener: TcpListener) -> Result<Server, std::io::Error> {
     println!("Program config: {:?}", LsArgs::from_args());
     std::env::set_var("RUST_LOG", "actix_web=info");
@@ -71,9 +72,10 @@ pub fn test_run(listener: TcpListener) -> Result<Server, std::io::Error> {
             .wrap(Logger::default())
             .service(
                 web::scope("/code")
-                    .route("/file/{filename:.*}", web::get().to(get_file))
-                    .route("/directory", web::get().to(get_dir)),
-            )
+                .route("/file/{filename:.*}", web::get().to(get_file))
+                .route("/directory", web::get().to(get_dir))
+                .route("/directory/root", web::get().to(get_root_uri))
+                .route("/run/{filename:.*}", web::get().to(run_program_file)))
             .route("/health", web::get().to(health_check))
     })
     .listen(listener)?
