@@ -6,9 +6,9 @@ Your code and language server are installed on your machine, enabling any mobile
 
 Language Server notifications sent to the proxy (`textDocument/didChange` and `workspace/didCreateFiles`) are intercepted by the proxy to provide file synchronization between client edits to the proxy's files.
 
-Endpoints in the proxy can be used to run and stop the running of code, which is not provided by the Language Server Protocol (`code/run/{source path}` and `code/kill`)
+Endpoints in the proxy can be used to run and stop the running of code, via a websocket, which is not provided by the Language Server Protocol (`code/run/{source path}`)
 
-Made primarily with Rust, Actix Web, and Tokio.
+Made with Rust, Actix Web, and Tokio.
 
 Have a look at the [Architecture](/docs/ARCHITECTURE.md) document for an overview of the code.
 
