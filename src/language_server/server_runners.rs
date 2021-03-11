@@ -8,6 +8,27 @@ pub fn start_lang_server(lang: Lang, temp_files_path: &Path) -> Option<Child> {
     match lang {
         Lang::Java => java_server(&temp_files_path),
         Lang::C => None,
+        Lang::Custom => custom_config_server(),
+    }
+}
+
+/// Runs a language server child process, given *exact* commandline arguments
+pub fn custom_config_server() -> Option<Child> {
+    let args = LsArgs::from_args();
+    let path = Path::new(&args.lang_server_path);
+    let custom_lang_server_cmd = args.custom_lang_server_cmd;
+
+    if let Some(custom_lang_server_cmd) = custom_lang_server_cmd {
+        Some(
+            Command::new(custom_lang_server_cmd)
+                .current_dir(path)
+                .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
+                .spawn()
+                .expect("unable to spawn language server process with custom command"),
+        )
+    } else {
+        None
     }
 }
 
@@ -63,7 +84,7 @@ fn java_server(temp_files_path: &Path) -> Option<Child> {
                 .stdin(Stdio::piped())
                 .stdout(Stdio::piped())
                 .spawn()
-                .expect("failed to execute"),
+                .expect("unable to spawn java language server process"),
         )
     } else {
         None

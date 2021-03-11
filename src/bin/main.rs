@@ -27,7 +27,8 @@ async fn main() -> std::io::Result<()> {
     }
     let path: String = args.codebase_path;
 
-    let child = start_lang_server(Lang::Java, tmp_dir.path()).expect("Couldn't start language server!");
+    let child =
+        start_lang_server(Lang::Java, tmp_dir.path()).expect("Couldn't start language server!");
     println!("Listening on {} ... 🚀", args.port);
 
     let state = web::Data::new(AppState {

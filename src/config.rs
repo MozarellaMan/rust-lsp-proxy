@@ -15,13 +15,22 @@ pub struct LsArgs {
 
     #[structopt(short = "s", long, env)]
     pub lang_server_path: String,
+
+    #[structopt(
+        short = "cl",
+        long = "Custom Language Server command",
+        env,
+        required_if("language", "Custom")
+    )]
+    pub custom_lang_server_cmd: Option<String>,
 }
 
 arg_enum! {
     #[derive(Debug)]
     pub enum Lang {
         Java,
-        C
+        C,
+        Custom
     }
 }
 

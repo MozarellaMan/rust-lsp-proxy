@@ -3,10 +3,7 @@ use actix_web::{dev::Server, middleware::Logger, web::Data};
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use file_system::file_sync::{get_dir, get_file, get_root_uri};
 use language_server::to_language_server;
-use program::{
-    code_runner::run_program_file,
-    user_program::UserProgram,
-};
+use program::{code_runner::run_program_file, user_program::UserProgram};
 use std::{
     net::TcpListener,
     sync::{atomic::AtomicBool, Arc},
@@ -47,7 +44,7 @@ pub fn run(
                     .route("/file/{filename:.*}", web::get().to(get_file))
                     .route("/directory", web::get().to(get_dir))
                     .route("/directory/root", web::get().to(get_root_uri))
-                    .route("/run/{filename:.*}", web::get().to(run_program_file))
+                    .route("/run/{filename:.*}", web::get().to(run_program_file)),
             )
             .route("/health", web::get().to(health_check))
             .data(child.clone())
@@ -72,10 +69,11 @@ pub fn test_run(listener: TcpListener) -> Result<Server, std::io::Error> {
             .wrap(Logger::default())
             .service(
                 web::scope("/code")
-                .route("/file/{filename:.*}", web::get().to(get_file))
-                .route("/directory", web::get().to(get_dir))
-                .route("/directory/root", web::get().to(get_root_uri))
-                .route("/run/{filename:.*}", web::get().to(run_program_file)))
+                    .route("/file/{filename:.*}", web::get().to(get_file))
+                    .route("/directory", web::get().to(get_dir))
+                    .route("/directory/root", web::get().to(get_root_uri))
+                    .route("/run/{filename:.*}", web::get().to(run_program_file)),
+            )
             .route("/health", web::get().to(health_check))
     })
     .listen(listener)?
