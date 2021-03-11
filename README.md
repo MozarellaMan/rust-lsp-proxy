@@ -16,13 +16,14 @@ Have a look at the [Architecture](/docs/ARCHITECTURE.md) document for an overvie
 
 - Remote file synchronization
 - Websocket connection to Language Server Protocol compliant server
+  - Currently, only the Java JDT language server has a pre-configured run command in the proxy, however it is possible to set a custom command via command line argument to run any language server of your choosing
 - Remote code compilation and execution
 - Remote input to running code via proxy endpoint
 - Proxy is thin and lightweight in resource usage
 
 ## Currently Unimplemented
 
-- Other common language servers
+- Code execution for common languages, not just java
 - Remote file deletion
 - Security (this has mainly been targeted at private usage)
 
@@ -60,6 +61,7 @@ FLAGS:
 OPTIONS:
     -c, --codebase-path
     -s, --lang-server-path
+    -d, --custom-lang-server-cmd
 
     -l, --language
     -p, --port [default: 8001]
@@ -69,6 +71,7 @@ OPTIONS:
 - `lang-server-path` is the path to the language server binary (currently only Java supported)
 - `language` is a value that tells the proxy what language is being used (refer to [this table](https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentItem))
 - `port` is the port that the proxy should listen for requests on
+- `custom-lang-server-cmd` allows you to specify a custom command for the proxy to run while in the directory of your language server (allows the use of language servers not officially implemented by me for the proxy)
 
 ### Building
 

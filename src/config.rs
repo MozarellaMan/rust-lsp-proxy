@@ -17,8 +17,8 @@ pub struct LsArgs {
     pub lang_server_path: String,
 
     #[structopt(
-        short = "cl",
-        long = "Custom Language Server command",
+        short = "d",
+        long,
         env,
         required_if("language", "Custom")
     )]
