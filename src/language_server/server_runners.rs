@@ -47,7 +47,7 @@ fn java_server(temp_files_path: &Path) -> Option<Child> {
     };
 
     if let Ok(dirs) = read_dir(plugins_dir) {
-        for path in dirs.into_iter().flatten() {
+        dirs.into_iter().flatten().for_each(|path| {
             if path
                 .file_name()
                 .to_string_lossy()
@@ -55,7 +55,7 @@ fn java_server(temp_files_path: &Path) -> Option<Child> {
             {
                 launcher_name = Some(path.file_name().to_string_lossy().to_string())
             }
-        }
+        });
     }
 
     if let (Some(launcher_name), Some(config)) = (launcher_name, config) {

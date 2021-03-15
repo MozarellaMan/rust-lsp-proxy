@@ -31,12 +31,7 @@ impl FileNode {
     }
 
     fn find_child(&mut self, name: String) -> Option<&mut FileNode> {
-        for c in self.children.iter_mut() {
-            if c.name == name {
-                return Some(c);
-            }
-        }
-        None
+        self.children.iter_mut().find(|c| c.name == name)
     }
 
     fn add_child<T>(&mut self, leaf: T) -> &mut Self

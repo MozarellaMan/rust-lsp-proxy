@@ -37,9 +37,9 @@ pub async fn get_dir() -> Result<Json<FileNode>, std::io::Error> {
         paths.push(entry);
     }
     let mut top = FileNode::new(paths.get(0).unwrap());
-    for _path in paths.iter() {
+    paths.iter().for_each(|_path| {
         build_file_tree(&mut top, &paths, 1);
-    }
+    });
     Ok(Json(top))
 }
 
