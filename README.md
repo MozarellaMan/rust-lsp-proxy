@@ -6,9 +6,9 @@ Your code and language server are installed on your machine, enabling any mobile
 
 Language Server notifications sent to the proxy (`textDocument/didChange` and `workspace/didCreateFiles`) are intercepted by the proxy to provide file synchronization between client edits to the proxy's files.
 
-Endpoints in the proxy can be used to run and stop the running of code, which is not provided by the Language Server Protocol (`code/run/{source path}` and `code/kill`)
+Endpoints in the proxy can be used to run and stop the running of code, via a websocket, which is not provided by the Language Server Protocol (`code/run/{source path}`)
 
-Made primarily with Rust, Actix Web, and Tokio.
+Made with Rust, Actix Web, and Tokio.
 
 Have a look at the [Architecture](/docs/ARCHITECTURE.md) document for an overview of the code.
 
@@ -29,7 +29,7 @@ Have a look at the [Architecture](/docs/ARCHITECTURE.md) document for an overvie
 
 ## Example Client
 
-<img src="https://user-images.githubusercontent.com/48062697/110400498-a0a7aa80-806f-11eb-9929-59c6b4062f2c.gif" width="280"> <img src="https://user-images.githubusercontent.com/48062697/110399225-5e7d6980-806d-11eb-8d69-27befc1f67a9.png" width="280">
+<img src="https://user-images.githubusercontent.com/48062697/110399225-5e7d6980-806d-11eb-8d69-27befc1f67a9.png" width="280">
 
 The [app](https://github.com/MozarellaMan/Mobile-LSP-Client) shown above connects to the proxy; uses communication with the language server to provide language features such as code diagnostics (warning about resource leak) and uses the proxy to provide file synchronisation and the ability to run and send input to the running source code remotely. This is just an example, a different client consuming this proxy can look totally different or run on a different device.
 

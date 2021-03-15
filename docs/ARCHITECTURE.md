@@ -24,7 +24,7 @@ The proxy aims to always stay running after a websocket connection to the langua
   A GET request to this endpoint will retrieve the current directory structure + file information of the codebase as a simple tree JSON object (detailed below). [file_sync.rs](../src/file_system/file_sync.rs/), [files.rs](../src/file_system/files.rs)
 - `/code/directory/root`  
   A GET request to this endpoint will retrieve the codebase's absolute path on the proxy as a URI. This is useful for initialising a language server. [file_sync.rs](../src/file_system/file_sync.rs)
-- `/code/run`  
+- `/code/run/{path-to-file}`  
   A GET request to this endpoint, followed by the path to the specific file relative to the root of the codebase, will attempt to compile and/or run the source file located at the path. The proxy currently chooses how to run the source file based on the `language` specified in the proxy's program arguments.  
   The proxy will return the source file's output and/or errors. An error is return if the proxy could not start a process with the specified source file. Only source one file can be run at a time. [code_runner.rs](../src/program/code_runner.rs), [runners.rs](../src/program/runners.rs), [user_program.rs](../src/program/user_program.rs)
 - `/health`  
