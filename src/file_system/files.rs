@@ -14,7 +14,7 @@ pub struct FileNode {
 impl FileNode {
     pub fn new(entry: &DirEntry) -> FileNode {
         FileNode {
-            path: entry.path().to_slash_lossy().to_string(),
+            path: entry.path().to_slash_lossy(),
             name: String::from(entry.file_name().to_str().unwrap()),
             file_type: if entry.file_type().is_dir() {
                 "directory".to_owned()

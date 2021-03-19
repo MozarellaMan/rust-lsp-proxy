@@ -1,10 +1,10 @@
 use std::{env, net::TcpListener};
 
 use lsp_proxy::config::{Lang, LsArgs};
-use tempfile::TempDir;
 
 pub const COMMON_TEST_DIRECTORY: &str = "./tests/integration/example_code_repos/test-java-repo";
-pub const COMMON_TEST_FILE: &str = "./tests/integration/example_code_repos/test-java-repo/src/Hello.java";
+pub const COMMON_TEST_FILE: &str =
+    "./tests/integration/example_code_repos/test-java-repo/src/Hello.java";
 pub const COMMON_TEST_LANG: Lang = lsp_proxy::config::Lang::Java;
 const TEST_JAVA_SERVER_PATH: &str = "./";
 
@@ -27,7 +27,7 @@ pub fn spawn_app(codebase_path: &str, language: Lang) -> String {
         custom_lang_server_cmd: None,
     };
 
-   // include_str!("./example_code_repos/test-java-repo/src/Hello.java");
+    // include_str!("./example_code_repos/test-java-repo/src/Hello.java");
     setup_program_args(&args);
 
     println!("test port: {}", port);

@@ -1,6 +1,6 @@
+use crate::test_helper::{spawn_app, COMMON_TEST_DIRECTORY, COMMON_TEST_FILE, COMMON_TEST_LANG};
 use reqwest::StatusCode;
 use std::{env, fs};
-use crate::test_helper::{COMMON_TEST_LANG, COMMON_TEST_DIRECTORY, COMMON_TEST_FILE, spawn_app};
 
 #[actix_rt::test]
 async fn file_endpoint_responds_with_existing_file() {

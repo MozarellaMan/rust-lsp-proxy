@@ -81,12 +81,12 @@ pub async fn update_file(path: PathBuf, update: FileSyncMsg) -> Result<(), FileS
 
 #[cfg(test)]
 mod tests {
-    use std::io::{Read, Seek, Write};
+    use std::io::Write;
 
     use crate::file_system::file_sync_msg::{FileSyncMsg, FileSyncType};
 
     use super::update_file;
-    use tempfile::{self, NamedTempFile, tempdir};
+    use tempfile::{self, tempdir, NamedTempFile};
 
     #[test]
     fn it_works() {
@@ -98,13 +98,24 @@ mod tests {
         let initial_contents = "Hello World!";
         let expected_contents = "Hello World!!! \n How do?";
         let mut file = NamedTempFile::new().expect("couldn't create file for testing!");
-        file.write_all(initial_contents.as_bytes()).expect("could not write to test file!");
+        file.write_all(initial_contents.as_bytes())
+            .expect("could not write to test file!");
 
-        update_file(file.path().to_path_buf(), FileSyncMsg { 
-            reason: FileSyncType::Update,
-            name: file.path().file_name().unwrap().to_string_lossy().to_string(),
-            text: Some(expected_contents.to_string()),
-        }).await.expect("Error in updating file!");
+        update_file(
+            file.path().to_path_buf(),
+            FileSyncMsg {
+                reason: FileSyncType::Update,
+                name: file
+                    .path()
+                    .file_name()
+                    .unwrap()
+                    .to_string_lossy()
+                    .to_string(),
+                text: Some(expected_contents.to_string()),
+            },
+        )
+        .await
+        .expect("Error in updating file!");
 
         let actual_contents = std::fs::read_to_string(file).expect("could not read test file!");
 
@@ -118,16 +129,21 @@ mod tests {
         let new_file_name = "Newfile.txt";
         let dir = tempdir().expect("couldn't create directory for testing!");
 
-        update_file(dir.path().to_path_buf(), FileSyncMsg { 
-            reason: FileSyncType::New,
-            name: new_file_name.to_string(),
-            text: Some(new_file_content.to_string()),
-        }).await.expect("Error in creating file!");
+        update_file(
+            dir.path().to_path_buf(),
+            FileSyncMsg {
+                reason: FileSyncType::New,
+                name: new_file_name.to_string(),
+                text: Some(new_file_content.to_string()),
+            },
+        )
+        .await
+        .expect("Error in creating file!");
 
         let new_file_path = dir.path().join(new_file_name);
-        let actual_contents = std::fs::read_to_string(new_file_path).expect("could not read test file!");
+        let actual_contents =
+            std::fs::read_to_string(new_file_path).expect("could not read test file!");
 
         assert_eq!(actual_contents, new_file_content);
     }
 }
-

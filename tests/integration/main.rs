@@ -1,4 +1,4 @@
-mod health;
-mod files;
 mod code;
+mod files;
+mod health;
 mod test_helper;
