@@ -61,9 +61,7 @@ async fn health_check() -> impl Responder {
 
 /// Run the server for tests
 pub fn test_run(listener: TcpListener) -> Result<Server, std::io::Error> {
-    println!("Program config: {:?}", LsArgs::from_args());
     std::env::set_var("RUST_LOG", "actix_web=info");
-    env_logger::init();
     let server = HttpServer::new(|| {
         App::new()
             .wrap(Logger::default())

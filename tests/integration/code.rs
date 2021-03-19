@@ -1,15 +1,15 @@
-mod test_helper;
-
 use reqwest::StatusCode;
-use std::fs;
-use test_helper::{COMMON_TEST_LANG, _COMMON_TEST_DIRECTORY, _COMMON_TEST_FILE};
+use std::{env, fs};
+use crate::test_helper::{COMMON_TEST_LANG, COMMON_TEST_DIRECTORY, COMMON_TEST_FILE, spawn_app};
 
 #[actix_rt::test]
 async fn file_endpoint_responds_with_existing_file() {
     // Arrange
-    let address = test_helper::spawn_app(_COMMON_TEST_DIRECTORY, COMMON_TEST_LANG);
+    let address = spawn_app(COMMON_TEST_DIRECTORY, COMMON_TEST_LANG);
     let client = reqwest::Client::new();
-    let actual_file = fs::read_to_string(_COMMON_TEST_FILE).ok();
+    let path = env::current_dir().expect("no dir");
+    println!("The current directory is {}", path.display());
+    let actual_file = fs::read_to_string(COMMON_TEST_FILE).expect("cannot find test file!");
     let input_path = "src/Hello.java";
 
     let response = client
@@ -22,5 +22,5 @@ async fn file_endpoint_responds_with_existing_file() {
 
     let content = response.text().await.expect("failed to get req content");
 
-    assert_eq!(actual_file.unwrap(), content.as_str());
+    assert_eq!(actual_file, content.as_str());
 }

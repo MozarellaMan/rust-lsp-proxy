@@ -1,3 +1,4 @@
+use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
 use walkdir::DirEntry;
 
@@ -13,7 +14,7 @@ pub struct FileNode {
 impl FileNode {
     pub fn new(entry: &DirEntry) -> FileNode {
         FileNode {
-            path: entry.path().display().to_string(),
+            path: entry.path().to_slash_lossy().to_string(),
             name: String::from(entry.file_name().to_str().unwrap()),
             file_type: if entry.file_type().is_dir() {
                 "directory".to_owned()

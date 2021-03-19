@@ -85,3 +85,11 @@ async fn intercept_did_update(params: DidChangeTextDocumentParams) {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn intercept_detects_correct_method() {
+       let _methods = vec!["textDocument/didUpdate", "workspace/didCreateFiles"];
+    }
+}
