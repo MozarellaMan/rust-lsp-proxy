@@ -58,28 +58,47 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for LangServer {
             let stdin = self.stdin.clone();
 
             let msg = serde_json::from_str::<Value>(&text);
+
+            // debug print client messages
             println!("\nStartClient\n{}\nEndClient\n", &text);
 
-            let intercept_fut = async move {
+            let intercept_future = async move {
                 if let Ok(msg) = msg {
                     if let Err(err) = intercept_notification(msg).await {
                         println!("err: {}", err);
                     };
                 }
             };
-            let lang_server_fut = async move {
+            let lang_server_future = async move {
                 let mut stdin = stdin.lock().await;
-                let text = format!("Content-Length: {}\r\n\r\n{}", text.len(), text);
+                let text = wrap_lsp_message(&text);
                 if let Err(er) = stdin.write_all(&text.as_bytes()).await {
                     eprintln!("Error writing to language server! {:?}", er);
                 }
                 stdin.flush();
             };
 
-            let lang_server_fut = actix::fut::wrap_future(lang_server_fut);
-            let intercept_fut = actix::fut::wrap_future(intercept_fut);
+            let lang_server_fut = actix::fut::wrap_future(lang_server_future);
+            let intercept_fut = actix::fut::wrap_future(intercept_future);
             ctx.spawn(intercept_fut);
             ctx.spawn(lang_server_fut);
         }
+    }
+}
+
+fn wrap_lsp_message(msg: &str) -> String {
+    format!("Content-Length: {}\r\n\r\n{}", msg.len(), msg)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::wrap_lsp_message;
+
+    #[test]
+    fn content_length_wrap_is_correct() {
+        let message = "Hello World!";
+        let actual = wrap_lsp_message(message);
+        let expected = format!("Content-Length: {}", message.len());
+        assert!(actual.contains(&expected))
     }
 }

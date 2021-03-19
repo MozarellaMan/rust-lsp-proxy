@@ -4,10 +4,12 @@ use reqwest::StatusCode;
 use serde_json::{json, Value};
 
 #[actix_rt::test]
-async fn directory_tree_json() {
-    // Arrange
+async fn check_directory_endpoint_returns_correct_json() {
+    // Arrange test components
     let address = spawn_app(COMMON_TEST_DIRECTORY, COMMON_TEST_LANG);
     let client = reqwest::Client::new();
+
+    // expected JSON data
     let expected = json!({
         "path": COMMON_TEST_DIRECTORY,
         "name": "test-java-repo",
@@ -32,7 +34,10 @@ async fn directory_tree_json() {
         .await
         .expect("failed to execute request");
 
+    // assert OK response from proxy
     assert_eq!(response.status(), StatusCode::OK);
+
+    // check return value matches the expected data
     let response = response.json::<Value>().await;
     assert_json_eq!(response.unwrap_or_default(), expected);
 }

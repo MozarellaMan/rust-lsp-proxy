@@ -22,7 +22,7 @@ pub async fn intercept_notification(msg: Value) -> Result<(), SerializerError> {
     Ok(())
 }
 
-async fn intercept_text_sync(msg: &Value, method: &str) -> Result<(), SerializerError> {
+async fn intercept_text_sync(msg: &Value, method: &str) -> Result<bool, SerializerError> {
     if let Value::Object(_) = &msg["params"] {
         match method {
             "textDocument/didChange" => {
@@ -34,12 +34,10 @@ async fn intercept_text_sync(msg: &Value, method: &str) -> Result<(), Serializer
                 let did_create: CreateFilesParams = serde_json::from_value(msg["params"].clone())?;
                 intercept_did_create(did_create).await;
             }
-            _unrecog => {
-                println!("not recongized: {}", _unrecog);
-            }
+            _unrecog => return Ok(false),
         }
     }
-    Ok(())
+    Ok(true)
 }
 
 async fn intercept_did_create(params: CreateFilesParams) {
@@ -88,8 +86,20 @@ async fn intercept_did_update(params: DidChangeTextDocumentParams) {
 
 #[cfg(test)]
 mod tests {
-    #[test]
-    fn intercept_detects_correct_method() {
-        let _methods = vec!["textDocument/didUpdate", "workspace/didCreateFiles"];
+    use super::intercept_text_sync;
+    use serde_json::json;
+
+    #[actix_rt::test]
+    async fn intercept_detects_correct_method() {
+        let methods = vec![
+            json!({"method" : "textDocument/didChange"}),
+            json!({"method" : "workspace/didCreateFiles"}),
+        ];
+
+        for method in methods.iter() {
+            assert!(intercept_text_sync(&method, "")
+                .await
+                .expect("serializer error"));
+        }
     }
 }
