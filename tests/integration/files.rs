@@ -23,7 +23,14 @@ async fn check_directory_endpoint_returns_correct_json() {
                 "name": "Hello.java",
                 "type": "java",
                 "children": [],
-            }],
+            },
+            {
+                "path": format!("{}/src/Terro.java", COMMON_TEST_DIRECTORY),
+                "name": "Terro.java",
+                "type": "java",
+                "children": [],
+            }
+            ],
         }]
     });
 
@@ -39,5 +46,9 @@ async fn check_directory_endpoint_returns_correct_json() {
 
     // check return value matches the expected data
     let response = response.json::<Value>().await;
-    assert_json_eq!(response.unwrap_or_default(), expected);
+    let response = response.unwrap_or_default();
+
+    println!("{:#}", response);
+    println!("{:#}", expected);
+    assert_json_eq!(response, expected);
 }

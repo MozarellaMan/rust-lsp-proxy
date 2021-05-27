@@ -1,6 +1,6 @@
 use super::{
     file_sync_msg::{map_io_err, FileSyncError, FileSyncMsg, FileSyncType},
-    files::{build_file_tree, is_ignored, FileNode},
+    files::{build_file_tree, FileNode},
 };
 use crate::{config::get_ls_args, AppState};
 use actix_files::NamedFile;
@@ -11,7 +11,6 @@ use actix_web::{
 };
 use std::path::{Path, PathBuf};
 use tokio::{fs::OpenOptions, io::AsyncWriteExt};
-use walkdir::{DirEntry, WalkDir};
 
 pub async fn get_root_uri(state: web::Data<AppState>) -> impl Responder {
     let uri = format!("file:///{}", &state.workspace_dir);
@@ -28,19 +27,8 @@ pub async fn get_file(req: HttpRequest) -> Result<NamedFile> {
 }
 
 pub async fn get_dir() -> Result<Json<FileNode>, std::io::Error> {
-    let mut paths: Vec<DirEntry> = Vec::new();
-    for entry in WalkDir::new(get_ls_args().codebase_path)
-        .into_iter()
-        .filter_entry(|e| !is_ignored(&e))
-        .filter_map(|e| e.ok())
-    {
-        paths.push(entry);
-    }
-    let mut top = FileNode::new(paths.get(0).unwrap());
-    paths.iter().for_each(|_path| {
-        build_file_tree(&mut top, &paths, 1);
-    });
-    Ok(Json(top))
+    let dir = build_file_tree(&get_ls_args().codebase_path, 0);
+    Ok(Json(dir))
 }
 
 pub async fn update_file(path: PathBuf, update: FileSyncMsg) -> Result<(), FileSyncError> {
@@ -87,11 +75,6 @@ mod tests {
 
     use super::update_file;
     use tempfile::{self, tempdir, NamedTempFile};
-
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
 
     #[actix_rt::test]
     async fn check_update_file_works() {
