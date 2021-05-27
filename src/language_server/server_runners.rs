@@ -18,18 +18,14 @@ pub fn custom_config_server() -> Option<Child> {
     let path = Path::new(&args.lang_server_path);
     let custom_lang_server_cmd = args.custom_lang_server_cmd;
 
-    if let Some(custom_lang_server_cmd) = custom_lang_server_cmd {
-        Some(
-            Command::new(custom_lang_server_cmd)
-                .current_dir(path)
-                .stdin(Stdio::piped())
-                .stdout(Stdio::piped())
-                .spawn()
-                .expect("unable to spawn language server process with custom command"),
-        )
-    } else {
-        None
-    }
+    custom_lang_server_cmd.map(|custom_cmd| {
+        Command::new(custom_cmd)
+            .current_dir(path)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .expect("unable to spawn language server process with custom command")
+    })
 }
 
 /// Starts a JDT language server process
