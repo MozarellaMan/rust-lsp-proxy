@@ -4,6 +4,7 @@ use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
 use walkdir::{DirEntry, WalkDir};
 
+/// Struct used to serialise directory information
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct FileNode {
     pub path: String,
@@ -42,6 +43,7 @@ impl FileNode {
     }
 }
 
+/// Serialise file directory into FileNode tree
 pub fn build_file_tree(path: &str, depth: usize) -> FileNode {
     let mut root_node = FileNode::new(Path::new(path));
 
