@@ -37,7 +37,7 @@ The proxy aims to always stay running after a websocket connection to the langua
 
 This struct encapsulates the child process that is created when the proxy is started. It provides a thread safe handle to the language server's stdin, and exposes a stream of the language server's stdout. It implements Actix's websocket Actor interface, allowing it to recieve and respond to messages asynchronously. This is also where certain messages to the language server (in the `handle` function) are intercepted by the proxy before being sent to the language server, to implement file synchronisation using standard Language Server Protocol messages ([intercept.rs](../src/language_server/intercept.rs)).
 
-### `FileSyncCommand` [file_sync_command.rs](../src/file_system/file_sync_msg.rs)
+### `FileSyncCommand` [file_sync_command.rs](../src/file_system/file_sync_command.rs)
 
 This simple struct is used internally to encapsulate changes to the file system on the proxy. This allows for conveniently matching on what changes need to be done to files on disk. This could potentially be used stored for version control but that is probably out of scope of this project. This struct is also coupled with an error type `FileSyncError` to encapsulate the types of errors that could occur when reading and writing to the files on the proxy. All file sync commands are handled by the `handle_file_sync` funciton in [file_sync.rs](../src/language_server/../file_system/file_sync.rs)
 
