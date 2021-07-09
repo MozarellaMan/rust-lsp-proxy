@@ -23,8 +23,7 @@ Have a look at the [Architecture](/docs/ARCHITECTURE.md) document for an overvie
 
 ## Currently Unimplemented
 
-- Code execution for common languages, not just java
-- Remote file deletion
+- Code execution for common languages, not just java, (some sort of generification needed)
 - Security (this has mainly been targeted at private usage)
 
 ## Example Client

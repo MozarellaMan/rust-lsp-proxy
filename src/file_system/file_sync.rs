@@ -39,7 +39,6 @@ pub async fn handle_file_sync(
     match command.reason {
         FileSyncType::New => {
             if path.is_dir() {
-                println!("creating!");
                 let path = path.join(&command.name);
                 let _file = tokio::fs::File::create(&path).await.map_err(map_io_err)?;
             } else {
@@ -63,9 +62,11 @@ pub async fn handle_file_sync(
             }
         }
         FileSyncType::Delete => {
-            return Err(FileSyncError::InternalError {
-                cause: "File deletion not implemented.".to_string(),
-            });
+            if path.exists() {
+                tokio::fs::remove_file(path).await.map_err(map_io_err)?
+            } else {
+                return Err(FileSyncError::NotFound);
+            }
         }
     }
     Ok(())

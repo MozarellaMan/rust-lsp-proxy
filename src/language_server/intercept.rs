@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use lsp_types::{CreateFilesParams, DidChangeTextDocumentParams, Url};
+use lsp_types::{CreateFilesParams, DeleteFilesParams, DidChangeTextDocumentParams, Url};
 use serde_json::Value;
 
 use crate::file_system::{
@@ -12,8 +12,7 @@ type SerializerError = serde_json::error::Error;
 
 pub async fn intercept_notification(msg: Value) -> Result<(), SerializerError> {
     if let Value::String(method) = &msg["method"] {
-        if method.starts_with("textDocument/didChange") || method.starts_with("workspace/didCreate")
-        {
+        if method.starts_with("textDocument/didChange") || method.starts_with("workspace/did") {
             intercept_text_sync(&msg, method).await?;
         }
     }
@@ -32,7 +31,11 @@ async fn intercept_text_sync(msg: &Value, method: &str) -> Result<bool, Serializ
                 let did_create: CreateFilesParams = serde_json::from_value(msg["params"].clone())?;
                 intercept_did_create(did_create).await;
             }
-            _unrecog => return Ok(false),
+            "workspace/didDeleteFiles" => {
+                let did_delete: DeleteFilesParams = serde_json::from_value(msg["params"].clone())?;
+                intercept_did_delete(did_delete).await;
+            }
+            _unrecognized => return Ok(false),
         }
     }
     Ok(true)
@@ -77,6 +80,30 @@ async fn intercept_did_update(params: DidChangeTextDocumentParams) {
             };
             if let Err(err) = handle_file_sync(path.clone(), file_sync_msg).await {
                 println!("{}", err)
+            }
+        }
+    }
+}
+
+async fn intercept_did_delete(params: DeleteFilesParams) {
+    let file_deletes = params.files;
+    for deletion in file_deletes.iter() {
+        let uri = Url::parse(&deletion.uri);
+        if let Ok(url) = uri {
+            let mut path = Path::new(url.as_str()).to_path_buf();
+            let file_name = url.path_segments().map(|s| s.last()).unwrap_or_default();
+            if let Some(name) = file_name {
+                let file_sync_msg = FileSyncCommand {
+                    reason: FileSyncType::Delete,
+                    name: name.to_string(),
+                    text: None,
+                };
+                path.pop();
+                if let Err(err) = handle_file_sync(path.clone(), file_sync_msg).await {
+                    println!("Could not delete! {}", err);
+                } else {
+                    println!("Deleted file: {:?}{:?}", path, file_name);
+                }
             }
         }
     }
