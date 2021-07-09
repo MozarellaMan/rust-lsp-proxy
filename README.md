@@ -29,7 +29,8 @@ Have a look at the [Architecture](/docs/ARCHITECTURE.md) document for an overvie
 
 ## Example Client
 
-<img src="https://user-images.githubusercontent.com/48062697/110399225-5e7d6980-806d-11eb-8d69-27befc1f67a9.png" width="280">
+<img src="docs/example.png" width="280">
+<img src="docs/example2.png" width="280">
 
 The [app](https://github.com/MozarellaMan/Mobile-LSP-Client) shown above connects to the proxy; uses communication with the language server to provide language features such as code diagnostics (warning about resource leak) and uses the proxy to provide file synchronisation and the ability to run and send input to the running source code remotely. This is just an example, a different client consuming this proxy can look totally different or run on a different device.
 

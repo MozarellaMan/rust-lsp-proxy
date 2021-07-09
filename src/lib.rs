@@ -18,7 +18,7 @@ pub mod program;
 /// newtype for lines from websocket
 #[derive(Debug)]
 struct Line(String);
-
+/// struct containing global state for the application
 pub struct AppState {
     pub ws_session_started: AtomicBool,
     pub lang: config::Lang,
@@ -27,6 +27,7 @@ pub struct AppState {
     pub user_program: Arc<Mutex<Option<UserProgram>>>,
 }
 
+/// Starts server
 pub fn run(
     listener: TcpListener,
     child: Arc<std::sync::Mutex<Child>>,
