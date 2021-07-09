@@ -1,6 +1,6 @@
 use crate::{
     config::{self, get_ls_args},
-    file_system::file_sync_msg::FileSyncError,
+    file_system::file_sync_command::FileSyncError,
     AppState,
 };
 use actix_web::{web, HttpRequest, HttpResponse, Result};

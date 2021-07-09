@@ -4,8 +4,8 @@ use lsp_types::{CreateFilesParams, DidChangeTextDocumentParams, Url};
 use serde_json::Value;
 
 use crate::file_system::{
-    file_sync::update_file,
-    file_sync_msg::{FileSyncMsg, FileSyncType},
+    file_sync::handle_file_sync,
+    file_sync_command::{FileSyncCommand, FileSyncType},
 };
 
 type SerializerError = serde_json::error::Error;
@@ -16,8 +16,6 @@ pub async fn intercept_notification(msg: Value) -> Result<(), SerializerError> {
         {
             intercept_text_sync(&msg, method).await?;
         }
-    } else {
-        println!("not method! : {:?} ", &msg);
     }
     Ok(())
 }
@@ -48,13 +46,13 @@ async fn intercept_did_create(params: CreateFilesParams) {
             let mut path = Path::new(url.as_str()).to_path_buf();
             let file_name = url.path_segments().map(|s| s.last()).unwrap_or_default();
             if let Some(name) = file_name {
-                let file_sync_msg = FileSyncMsg {
+                let file_sync_msg = FileSyncCommand {
                     reason: FileSyncType::New,
                     name: name.to_string(),
                     text: None,
                 };
                 path.pop();
-                if let Err(err) = update_file(path.clone(), file_sync_msg).await {
+                if let Err(err) = handle_file_sync(path.clone(), file_sync_msg).await {
                     println!("could not update! {}", err);
                 } else {
                     println!("Created file: {:?}{:?}", path, file_name);
@@ -72,12 +70,12 @@ async fn intercept_did_update(params: DidChangeTextDocumentParams) {
     let file_name = uri.path_segments().map(|s| s.last()).unwrap_or_default();
     if let (Ok(path), Some(name)) = (path, file_name) {
         for change in params.content_changes.iter() {
-            let file_sync_msg = FileSyncMsg {
+            let file_sync_msg = FileSyncCommand {
                 reason: FileSyncType::Update,
                 name: name.to_string(),
                 text: Some(change.text.clone()),
             };
-            if let Err(err) = update_file(path.clone(), file_sync_msg).await {
+            if let Err(err) = handle_file_sync(path.clone(), file_sync_msg).await {
                 println!("{}", err)
             }
         }

@@ -6,7 +6,7 @@ pub enum FileSyncType {
     Update,
     Delete,
 }
-pub struct FileSyncMsg {
+pub struct FileSyncCommand {
     pub reason: FileSyncType,
     pub name: String,
     pub text: Option<String>,

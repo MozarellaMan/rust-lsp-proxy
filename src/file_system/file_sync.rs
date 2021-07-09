@@ -1,5 +1,5 @@
 use super::{
-    file_sync_msg::{map_io_err, FileSyncError, FileSyncMsg, FileSyncType},
+    file_sync_command::{map_io_err, FileSyncCommand, FileSyncError, FileSyncType},
     files::{build_file_tree, FileNode},
 };
 use crate::{config::get_ls_args, AppState};
@@ -31,12 +31,16 @@ pub async fn get_dir() -> Result<Json<FileNode>, std::io::Error> {
     Ok(Json(dir))
 }
 
-pub async fn update_file(path: PathBuf, update: FileSyncMsg) -> Result<(), FileSyncError> {
-    match update.reason {
+/// Handles file synchronization commands. Makes the actual changes to the file system
+pub async fn handle_file_sync(
+    path: PathBuf,
+    command: FileSyncCommand,
+) -> Result<(), FileSyncError> {
+    match command.reason {
         FileSyncType::New => {
             if path.is_dir() {
                 println!("creating!");
-                let path = path.join(&update.name);
+                let path = path.join(&command.name);
                 let _file = tokio::fs::File::create(&path).await.map_err(map_io_err)?;
             } else {
                 return Err(FileSyncError::BadClientData {
@@ -45,7 +49,7 @@ pub async fn update_file(path: PathBuf, update: FileSyncMsg) -> Result<(), FileS
             }
         }
         FileSyncType::Update => {
-            if update.text.is_some() {
+            if command.text.is_some() {
                 let mut options = OpenOptions::new();
                 let mut file = options
                     .write(true)
@@ -53,7 +57,7 @@ pub async fn update_file(path: PathBuf, update: FileSyncMsg) -> Result<(), FileS
                     .open(path)
                     .await
                     .map_err(map_io_err)?;
-                file.write_all(update.text.unwrap().as_bytes())
+                file.write_all(command.text.unwrap().as_bytes())
                     .await
                     .map_err(map_io_err)?;
             }
@@ -71,9 +75,9 @@ pub async fn update_file(path: PathBuf, update: FileSyncMsg) -> Result<(), FileS
 mod tests {
     use std::io::Write;
 
-    use crate::file_system::file_sync_msg::{FileSyncMsg, FileSyncType};
+    use crate::file_system::file_sync_command::{FileSyncCommand, FileSyncType};
 
-    use super::update_file;
+    use super::handle_file_sync;
     use tempfile::{self, tempdir, NamedTempFile};
 
     #[actix_rt::test]
@@ -84,9 +88,9 @@ mod tests {
         file.write_all(initial_contents.as_bytes())
             .expect("could not write to test file!");
 
-        update_file(
+        handle_file_sync(
             file.path().to_path_buf(),
-            FileSyncMsg {
+            FileSyncCommand {
                 reason: FileSyncType::Update,
                 name: file
                     .path()
@@ -112,9 +116,9 @@ mod tests {
         let new_file_name = "Newfile.txt";
         let dir = tempdir().expect("couldn't create directory for testing!");
 
-        update_file(
+        handle_file_sync(
             dir.path().to_path_buf(),
-            FileSyncMsg {
+            FileSyncCommand {
                 reason: FileSyncType::New,
                 name: new_file_name.to_string(),
                 text: Some(new_file_content.to_string()),
